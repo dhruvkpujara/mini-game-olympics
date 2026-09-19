@@ -1,6 +1,6 @@
 function createSkySprint(scene){
   const root=new THREE.Group();root.name='SkySprint';
-  const mat={platform:new THREE.MeshStandardMaterial({color:0x4b7bec}),edge:new THREE.MeshStandardMaterial({color:0xf5c542}),white:new THREE.MeshStandardMaterial({color:0xffffff}),red:new THREE.MeshStandardMaterial({color:0xe74c3c}),dark:new THREE.MeshStandardMaterial({color:0x182432}),green:new THREE.MeshStandardMaterial({color:0x43c46b})};
+  const mat={platform:new THREE.MeshStandardMaterial({color:0x4b7bec}),edge:new THREE.MeshStandardMaterial({color:0xf5c542}),white:new THREE.MeshStandardMaterial({color:0xffffff}),gold:new THREE.MeshStandardMaterial({color:0xf5c542}),red:new THREE.MeshStandardMaterial({color:0xe74c3c}),dark:new THREE.MeshStandardMaterial({color:0x182432}),green:new THREE.MeshStandardMaterial({color:0x43c46b})};
   function box(w,h,d,x,y,z,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;root.add(o);return o}
   // Floating race path above the stadium: start -> finish along +Z.
   const segments=[-110,-94,-78,-62,-46,-30,-14,2,18];
