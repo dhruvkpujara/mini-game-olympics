@@ -55,7 +55,7 @@ function updateSkySprint(player,keys,dt,yaw,race,toast){
   if(player.position.y<-3){toast('Fell! Respawning at checkpoint');const idx=Math.max(0,race.checkpoint);const z=race.segments[idx];player.position.set(Math.sin(idx*1.7)*7,10,z);u.vy=0;u.ground=true}
   if(race.checkpoint<race.segments.length-1 && player.position.z>race.segments[race.checkpoint+1]-5){race.checkpoint++;toast('CHECKPOINT '+race.checkpoint)}
   if(player.position.z>race.finishZ-3){race.finished=true;race.active=false;toast('FINISH! '+race.time.toFixed(2)+'s');player.position.z=race.finishZ-2}
-  for(const o of race.obstacles){o.position.x=o.userData.baseX+Math.sin(performance.now()/600+o.userData.phase)*5}
+  for(const o of race.obstacles){o.position.x=o.userData.baseX+Math.sin(performance.now()/600+o.userData.phase)*3}
 }
 
 function skySprintLeaderboard(time){
