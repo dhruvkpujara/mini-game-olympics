@@ -13,7 +13,7 @@ function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.
   if(race.active)updateSkySprint(player,keys,dt,yaw,race,showToast);else if(!race.finished)updatePlayer(player,keys,dt,yaw,showToast);
   if(race.finished){returnTimer+=dt;if(returnTimer>6){race.finished=false;returnTimer=0;skyCountdown=12;player.position.set(0,.1,22);setRaceVisible(false);showToast('Back to Olympic Plaza')}}
   updateCamera(camera,player,yaw,race.active?.28:pitch);
-  world.athletes.forEach((a,i)=>{a.position.x+=Math.sin(elapsed*(.35+i*.05)+i)*dt*.7;a.position.z+=Math.cos(elapsed*(.3+i*.05)+i)*dt*.55});
+  world.athletes.forEach((a,i)=>{a.position.x=a.userData.baseX+Math.sin(elapsed*(.55+i*.06)+a.userData.phase)*2.2;a.position.z=a.userData.baseZ+Math.cos(elapsed*(.45+i*.05)+a.userData.phase)*1.4});
   updateUI(player,dt);updateRaceHUD();renderer.render(scene,camera)
 }
 try{loop()}catch(err){console.error(err);const e=document.createElement('div');e.style='position:fixed;inset:20px;background:#200;color:#fff;padding:20px;z-index:99;font:16px monospace;white-space:pre-wrap';e.textContent='GAME ERROR\\n'+err.stack;document.body.appendChild(e)}
