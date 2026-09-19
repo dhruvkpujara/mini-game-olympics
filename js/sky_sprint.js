@@ -54,6 +54,21 @@ function updateSkySprint(player,keys,dt,yaw,race,toast){
   if(platformY>-999 && player.position.y<=platformY){player.position.y=platformY;u.vy=0;u.ground=true}
   if(player.position.y<-3){toast('Fell! Respawning at checkpoint');const idx=Math.max(0,race.checkpoint);const z=race.segments[idx];player.position.set(Math.sin(idx*1.7)*7,10,z);u.vy=0;u.ground=true}
   if(race.checkpoint<race.segments.length-1 && player.position.z>race.segments[race.checkpoint+1]-5){race.checkpoint++;toast('CHECKPOINT '+race.checkpoint)}
+  // Solid obstacle collision: push the player away and apply a short slowdown.
+  for(const o of race.obstacles){
+    const dx=player.position.x-o.position.x;
+    const dz=player.position.z-o.position.z;
+    const hitX=Math.abs(dx)<7.0;
+    const hitZ=Math.abs(dz)<1.2;
+    const hitY=Math.abs(player.position.y-o.position.y)<2.0;
+    if(hitX&&hitZ&&hitY){
+      const push=dx>=0?1:-1;
+      player.position.x=o.position.x+push*7.2;
+      player.userData.vy=Math.max(player.userData.vy,2.5);
+      race.time+=0.8;
+      toast('OBSTACLE HIT! +0.8s');
+    }
+  }
   if(player.position.z>race.finishZ-3){race.finished=true;race.active=false;toast('FINISH! '+race.time.toFixed(2)+'s');player.position.z=race.finishZ-2}
   for(const o of race.obstacles){o.position.x=o.userData.baseX+Math.sin(performance.now()/600+o.userData.phase)*3}
 }
