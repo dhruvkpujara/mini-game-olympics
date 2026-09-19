@@ -25,13 +25,24 @@ function createSkySprint(scene){
   const fz=18,fx=Math.sin(8*1.7)*7;
   box(.8,7,.8,fx-7,12.5,fz,mat.white);box(.8,7,.8,fx+7,12.5,fz,mat.white);box(15,1,1,fx,15.8,fz,mat.gold);
   box(15,.25,.8,fx,12,fz,mat.red);
+  // Rival athletes use the exact same character model as the player.
+  const rivals=[];
+  const rivalColors=[0xe74c3c,0x16a085,0x8e44ad,0xf39c12,0x34495e];
+  for(let i=0;i<5;i++){
+    const rival=createPlayer(scene);
+    rival.userData.rival=true;
+    rival.visible=false;
+    rival.traverse(o=>{if(o.isMesh&&o.material&&o.material.color&&o.material.color.getHex()===0x2458d6)o.material=o.material.clone(),o.material.color.setHex(rivalColors[i]);});
+    rivals.push(rival);
+  }
   scene.add(root);
-  return {root,segments,finishZ:fz,finishX:fx,obstacles:root.children.filter(o=>o.userData.phase!==undefined)};
+  return {root,segments,finishZ:fz,finishX:fx,obstacles:root.children.filter(o=>o.userData.phase!==undefined),rivals};
 }
 
 function startSkySprint(player,race){
-  race.active=true;race.finished=false;race.time=0;race.startTime=performance.now();race.checkpoint=0;race.message='GO!';
-  player.position.set(0,9.8,-110);player.rotation.set(0,0,0);player.visible=true;
+  race.active=true;race.finished=false;race.time=0;race.startTime=performance.now();race.checkpoint=0;race.message='GO!';race.hitCooldown=0;
+  player.position.set(0,9.8,-110);
+  race.rivals.forEach((r,i)=>{r.visible=true;r.position.set((i-2)*3,9.8,-110-Math.min(i,2)*1.5);r.userData.vy=0;r.userData.raceSpeed=5.8+i*.45;r.userData.racePhase=i*.9;});player.rotation.set(0,0,0);player.visible=true;
 }
 
 function updateSkySprint(player,keys,dt,yaw,race,toast){
@@ -52,9 +63,16 @@ function updateSkySprint(player,keys,dt,yaw,race,toast){
     if(Math.abs(player.position.x-px)<9 && Math.abs(player.position.z-z)<6)platformY=9.6;
   }
   if(platformY>-999 && player.position.y<=platformY){player.position.y=platformY;u.vy=0;u.ground=true}
-  if(player.position.y<-3){toast('Fell! Respawning at checkpoint');const idx=Math.max(0,race.checkpoint);const z=race.segments[idx];player.position.set(Math.sin(idx*1.7)*7,10,z);u.vy=0;u.ground=true}
-  if(race.checkpoint<race.segments.length-1 && player.position.z>race.segments[race.checkpoint+1]-5){race.checkpoint++;toast('CHECKPOINT '+race.checkpoint)}
+  if(player.position.y<-3){
+    const idx=Math.max(0,race.checkpoint);
+    const z=race.segments[idx];
+    player.position.set(Math.sin(idx*1.7)*7,10,z);
+    u.vy=0;u.ground=true;
+    toast('Fell! Back to checkpoint '+idx);
+  }
+  if(race.checkpoint<race.segments.length-1 && player.position.z>race.segments[race.checkpoint+1]+3){race.checkpoint++;toast('CHECKPOINT '+race.checkpoint)}
   // Solid obstacle collision: push the player away and apply a short slowdown.
+  race.hitCooldown=Math.max(0,(race.hitCooldown||0)-dt);
   for(const o of race.obstacles){
     const dx=player.position.x-o.position.x;
     const dz=player.position.z-o.position.z;
@@ -65,12 +83,19 @@ function updateSkySprint(player,keys,dt,yaw,race,toast){
       const push=dx>=0?1:-1;
       player.position.x=o.position.x+push*7.2;
       player.userData.vy=Math.max(player.userData.vy,2.5);
-      race.time+=0.8;
-      toast('OBSTACLE HIT! +0.8s');
+      if(race.hitCooldown<=0){race.time+=0.8;race.hitCooldown=.5;toast('OBSTACLE HIT! +0.8s');}
     }
   }
   if(player.position.z>race.finishZ-3){race.finished=true;race.active=false;toast('FINISH! '+race.time.toFixed(2)+'s');player.position.z=race.finishZ-2}
   for(const o of race.obstacles){o.position.x=o.userData.baseX+Math.sin(performance.now()/600+o.userData.phase)*3}
+  race.rivals.forEach((r,i)=>{
+    if(!r.visible)return;
+    r.position.z += r.userData.raceSpeed*dt;
+    r.position.x += Math.sin(elapsed*1.8+r.userData.racePhase)*dt*1.5;
+    r.position.y=9.8;
+    r.rotation.y=Math.PI;
+    if(r.position.z>race.finishZ)r.position.z=race.finishZ;
+  });
 }
 
 function skySprintLeaderboard(time){
