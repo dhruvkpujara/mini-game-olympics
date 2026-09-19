@@ -1,0 +1,1 @@
+function updateCamera(camera,p,yaw,pitch){const t=p.position.clone();t.y+=2.2;const d=12,cp=Math.cos(pitch),sp=Math.sin(pitch),q=new THREE.Vector3(t.x-Math.sin(yaw)*cp*d,t.y+sp*d,t.z-Math.cos(yaw)*cp*d);camera.position.lerp(q,.12);camera.lookAt(t)}
