@@ -34,7 +34,7 @@
     ['js/sky_sprint.js?v=10','Loading Sky Sprint...'],
     ['js/ui.js?v=4','Loading interface...'],
     ['js/game_state.js?v=2','Loading game state...'],
-    ['js/main.js?v=15','Starting 3D engine...']
+    ['js/main.js?v=16','Starting 3D engine...']
   ];
 
   async function start(){
