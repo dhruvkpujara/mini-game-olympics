@@ -48,7 +48,7 @@ function createSkySprint(scene){
 }
 
 function startSkySprint(player,race){
-  race.active=true;race.finished=false;race.time=0;race.coinCount=0;race.boost=0;race.hitCount=0;race.startTime=performance.now();race.checkpoint=0;race.message='GO!';race.hitCooldown=0;race.playerFinished=false;race.rivalFinishTimes=[null,null,null,null,null];
+  race.active=true;race.finished=false;race.time=0;race.coinCount=0;race.boost=0;race.hitCount=0;race.startTime=performance.now();race.checkpoint=0;race.lastSafePlatform=0;race.message='GO!';race.hitCooldown=0;race.playerFinished=false;race.rivalFinishTimes=[null,null,null,null,null];
   player.position.set(0,9.8,-110);
   race.rivals.forEach((r,i)=>{r.visible=true;r.position.set((i-2)*3,9.8,-110-Math.min(i,2)*1.5);r.userData.vy=0;r.userData.raceSpeed=7.4+i*.28;r.userData.racePhase=i*.9;r.userData.finished=false;});player.rotation.set(0,0,0);player.visible=true;
 }
@@ -70,15 +70,21 @@ function updateSkySprint(player,keys,dt,yaw,race,toast){
     const px=Math.sin(race.segments.indexOf(z)*1.7)*7;
     if(Math.abs(player.position.x-px)<9 && Math.abs(player.position.z-z)<6)platformY=9.6;
   }
-  if(platformY>-999 && player.position.y<=platformY){player.position.y=platformY;u.vy=0;u.ground=true}
+  if(platformY>-999 && player.position.y<=platformY){
+    player.position.y=platformY;u.vy=0;u.ground=true;
+    let landedIndex=-1;
+    let bestDistance=Infinity;
+    race.segments.forEach((z,i)=>{const px=Math.sin(i*1.7)*7;const dist=Math.abs(player.position.z-z)+Math.abs(player.position.x-px);if(Math.abs(player.position.z-z)<6&&Math.abs(player.position.x-px)<9&&dist<bestDistance){bestDistance=dist;landedIndex=i}});
+    if(landedIndex>=0&&landedIndex>race.lastSafePlatform){race.lastSafePlatform=landedIndex;race.checkpoint=landedIndex;toast('CHECKPOINT '+landedIndex)}
+  }
   if(player.position.y<-3){
-    const idx=Math.max(0,race.checkpoint);
+    const idx=Math.max(0,race.lastSafePlatform||0);
     const z=race.segments[idx];
-    player.position.set(Math.sin(idx*1.7)*7,10,z);
+    const x=Math.sin(idx*1.7)*7;
+    player.position.set(x,10,z);
     u.vy=0;u.ground=true;
     toast('Fell! Back to checkpoint '+idx);
   }
-  if(race.checkpoint<race.segments.length-1 && player.position.z>race.segments[race.checkpoint+1]+3){race.checkpoint++;toast('CHECKPOINT '+race.checkpoint)}
   // Interactive boost pads and collectibles
   for(const pad of race.boosts){if(pad.userData.cool>0)pad.userData.cool-=dt;if(pad.userData.cool<=0&&Math.abs(player.position.x-pad.position.x)<4&&Math.abs(player.position.z-pad.position.z)<2&&Math.abs(player.position.y-pad.position.y)<2){pad.userData.cool=1.2;race.boost=2.2;toast('BOOST PAD! +SPEED')}}
   for(const c of race.coins){if(!c.visible)continue;c.rotation.z+=dt*4;c.position.y=c.userData.baseY+Math.sin(performance.now()/250+c.userData.phase)*.35;if(player.position.distanceTo(c.position)<1.6){c.visible=false;race.coinCount++;toast('COIN +1')}}
