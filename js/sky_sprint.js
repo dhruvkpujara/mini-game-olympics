@@ -13,7 +13,7 @@ function createSkySprint(scene){
   for(let i=1;i<segments.length-1;i++){
     const z=segments[i],x=Math.sin(i*1.7)*7;
     const bar=box(13,.7,.7,x,10.4,z, i%2?mat.red:mat.edge);
-    bar.userData={baseX:x,phase:i*1.4};
+    bar.userData={obstacle:true,baseX:x,phase:i*1.4};
   }
   // interactive boost pads and collectible coins
   const boosts=[],coins=[];
@@ -39,7 +39,7 @@ function createSkySprint(scene){
     rivals.push(rival);
   }
   scene.add(root);
-  return {root,segments,finishZ:fz,finishX:fx,obstacles:root.children.filter(o=>o.userData.phase!==undefined),boosts,coins,rivals};
+  return {root,segments,finishZ:fz,finishX:fx,obstacles:root.children.filter(o=>o.userData.obstacle===true),boosts,coins,rivals};
 }
 
 function startSkySprint(player,race){
