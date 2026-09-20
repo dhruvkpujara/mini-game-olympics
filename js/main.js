@@ -5,22 +5,118 @@ scene.add(new THREE.HemisphereLight(0xffffff,0x65815d,2.2));const sun=new THREE.
 const world=createWorld(scene),race=createSkySprint(scene),player=createPlayer(scene);player.position.set(0,.1,22);
 const keys={};addEventListener('keydown',e=>keys[e.code]=true);addEventListener('keyup',e=>keys[e.code]=false);
 let yaw=.25,pitch=.48,drag=false,lx=0,ly=0;renderer.domElement.onmousedown=e=>{drag=true;lx=e.clientX;ly=e.clientY};addEventListener('mouseup',()=>drag=false);addEventListener('mousemove',e=>{if(!drag)return;yaw-=(e.clientX-lx)*.006;pitch=Math.max(.2,Math.min(1.05,pitch-(e.clientY-ly)*.004));lx=e.clientX;ly=e.clientY});
-let skyCountdown=5,skyStarted=false,returnTimer=0,elapsed=0,secondGame=false,targetTime=30,targetScore=0,targets=[],targetRay=new THREE.Raycaster(),mouse=new THREE.Vector2(),clock=new THREE.Clock();
+let skyCountdown=5,returnTimer=0,elapsed=0,secondGame=false,targetTime=30,targetScore=0,targetResultTimer=0,targets=[],targetRay=new THREE.Raycaster(),mouse=new THREE.Vector2(),clock=new THREE.Clock();
+const gameState=MGOGameState.create('SKY_COUNTDOWN');
 function setRaceVisible(v){const h=document.querySelector('#raceHud');const b=document.querySelector('#raceBoard');if(h)h.style.display=v?'block':'none';if(b)b.style.display=(v&&race&&race.finished)?'block':'none'}
 function clearTargets(){for(const t of targets)scene.remove(t);targets=[]}
-function startTargetMayhem(){secondGame=true;targetTime=30;targetScore=0;clearTargets();player.position.set(0,.1,48);player.rotation.y=Math.PI;document.querySelector('#eventName').textContent='TARGET MAYHEM';document.querySelector('#venue').innerHTML='<b>CHALLENGE ARENA</b><span>Click targets to score points</span>';setRaceVisible(false);for(let i=0;i<9;i++){const g=new THREE.Group(),pole=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,4,8),new THREE.MeshStandardMaterial({color:0x263746})),target=new THREE.Mesh(new THREE.CylinderGeometry(2,2,.35,24),new THREE.MeshStandardMaterial({color:i%2?0xe74c3c:0xf5c542}));pole.position.y=2;target.position.y=4;target.rotation.x=Math.PI/2;g.add(pole,target);g.position.set((i%3-1)*10,0,25-Math.floor(i/3)*10);g.userData={target:true,phase:i};scene.add(g);targets.push(g)}showToast('TARGET MAYHEM! CLICK THE TARGETS!')}
-function updateTargetMayhem(dt){if(!secondGame)return;targetTime-=dt;for(const g of targets){if(!g.visible)continue;g.rotation.y+=dt*1.5;g.position.x=Math.max(-12,Math.min(12,g.position.x+Math.sin(elapsed*2+g.userData.phase)*dt*2))}if(targetTime<=0){targetTime=0;secondGame=false;showToast('TIME! SCORE '+targetScore);clearTargets();document.querySelector('#eventName').textContent='RESULTS';document.querySelector('#venue').innerHTML='<b>CHALLENGE ARENA</b><span>Target Mayhem complete · Score '+targetScore+'</span>';setTimeout(()=>{document.querySelector('#eventName').textContent='NEXT EVENT';document.querySelector('#venue').innerHTML='<b>OLYMPIC PLAZA</b><span>Ready for the next mini-game</span>'},1500)}}
+function startTargetMayhem(){secondGame=true;targetResultTimer=0;targetTime=30;targetScore=0;clearTargets();player.position.set(0,.1,48);player.rotation.y=Math.PI;document.querySelector('#eventName').textContent='TARGET MAYHEM';document.querySelector('#venue').innerHTML='<b>CHALLENGE ARENA</b><span>Click targets to score points</span>';setRaceVisible(false);for(let i=0;i<9;i++){const g=new THREE.Group(),pole=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,4,8),new THREE.MeshStandardMaterial({color:0x263746})),target=new THREE.Mesh(new THREE.CylinderGeometry(2,2,.35,24),new THREE.MeshStandardMaterial({color:i%2?0xe74c3c:0xf5c542}));pole.position.y=2;target.position.y=4;target.rotation.x=Math.PI/2;g.add(pole,target);g.position.set((i%3-1)*10,0,25-Math.floor(i/3)*10);g.userData={target:true,phase:i};scene.add(g);targets.push(g)}showToast('TARGET MAYHEM! CLICK THE TARGETS!')}
+function updateTargetMayhem(dt){if(!secondGame)return;targetTime-=dt;for(const g of targets){if(!g.visible)continue;g.rotation.y+=dt*1.5;g.position.x=Math.max(-12,Math.min(12,g.position.x+Math.sin(elapsed*2+g.userData.phase)*dt*2))}if(targetTime<=0){targetTime=0;secondGame=false;gameState.set('TARGET_RESULTS');targetResultTimer=0;showToast('TIME! SCORE '+targetScore);clearTargets();document.querySelector('#eventName').textContent='RESULTS';document.querySelector('#venue').innerHTML='<b>CHALLENGE ARENA</b><span>Target Mayhem complete · Score '+targetScore+'</span>';setTimeout(()=>{document.querySelector('#eventName').textContent='NEXT EVENT';document.querySelector('#venue').innerHTML='<b>OLYMPIC PLAZA</b><span>Ready for the next mini-game</span>'},1500)}}
 function shootTarget(e){if(!secondGame)return;const r=renderer.domElement.getBoundingClientRect();mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;targetRay.setFromCamera(mouse,camera);const hits=targetRay.intersectObjects(targets,true);if(hits.length){let g=hits[0].object;while(g.parent&&!g.userData.target)g=g.parent;if(g.userData.target&&g.visible){g.visible=false;targetScore+=100;showToast('HIT! +100 · SCORE '+targetScore)}}}
 renderer.domElement.addEventListener('click',shootTarget);
 function updateRaceHUD(){if(secondGame){return}const h=document.querySelector('#raceHud'),b=document.querySelector('#raceBoard');if(!race.active&&!race.finished){h.style.display='block';b.style.display='none';document.querySelector('#raceState').textContent='Starting in '+Math.ceil(skyCountdown)+'s';document.querySelector('#raceTime').textContent='GET READY';document.querySelector('#raceCheckpoint').textContent='SKY COURSE · 8 CHECKPOINTS';document.querySelector('#raceStats').textContent='COINS 0 · BOOST READY';return}setRaceVisible(true);document.querySelector('#raceState').textContent=race.finished?'RESULTS':'RACE LIVE';document.querySelector('#raceTime').textContent=race.finished?race.time.toFixed(2)+'s':race.time.toFixed(2)+'s';document.querySelector('#raceCheckpoint').textContent='CHECKPOINT '+race.checkpoint+' / 8';document.querySelector('#raceStats').textContent='COINS '+(race.coins||0)+' · BOOST '+((race.boost||0)>0?race.boost.toFixed(1)+'s':'READY');if(race.finished){const board=skySprintLeaderboard(race);b.innerHTML='<b>LEADERBOARD</b>'+board.slice(0,6).map((x,i)=>'<div class="race-row '+(x.name==='YOU'?'you':'')+'"><span>'+(i+1)+'. '+x.name+'</span><span>'+(x.finished?x.time.toFixed(2)+'s':'--')+'</span></div>').join('')}}
-function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05);elapsed+=dt;
-  if(!secondGame&&!race.active&&!race.finished&&!race.playerFinished&&!skyStarted){skyCountdown-=dt;if(skyCountdown<=0){skyCountdown=0;skyStarted=true;startSkySprint(player,race);showToast('GO! RUN TO THE FINISH!');setRaceVisible(true)}}
-  if(secondGame)updateTargetMayhem(dt);else if(race.active)updateSkySprint(player,keys,dt,yaw,race,showToast);else if(!race.finished&&!race.playerFinished)updatePlayer(player,keys,dt,yaw,showToast);
-  if(race.playerFinished&&!race.finished){race.finished=true;returnTimer=0;const board=skySprintLeaderboard(race);const place=board.findIndex(x=>x.name==='YOU')+1;showToast(place===1?'1ST PLACE! 🏆':'FINISHED — PLACE '+place)}
-  if(race.finished){returnTimer+=dt;if(returnTimer>2){race.finished=false;race.playerFinished=false;race.playerFinishTime=null;race.rivalFinishTimes=[];returnTimer=0;skyStarted=false;skyCountdown=5;startTargetMayhem()}}
-  updateCamera(camera,player,yaw,race.active ? .28 : pitch);if(secondGame){document.querySelector('#raceHud').style.display='block';document.querySelector('#raceBoard').style.display='none';document.querySelector('#raceState').textContent='TARGET MAYHEM';document.querySelector('#raceTime').textContent=Math.max(0,targetTime).toFixed(1)+'s';document.querySelector('#raceCheckpoint').textContent='CLICK TARGETS';document.querySelector('#raceStats').textContent='SCORE '+targetScore;}
-  
-  updateUI(player,dt,race.active||race.finished||skyStarted,secondGame);updateRaceHUD();renderer.render(scene,camera)
+function loop(){
+  requestAnimationFrame(loop);
+  const dt=Math.min(clock.getDelta(),.05);
+  elapsed+=dt;
+  gameState.tick(dt);
+
+  try{
+    switch(gameState.state){
+      case 'SKY_COUNTDOWN':
+        skyCountdown=Math.max(0,skyCountdown-dt);
+        if(skyCountdown<=0){
+          startSkySprint(player,race);
+          gameState.set('SKY_SPRINT');
+          showToast('GO! RUN TO THE FINISH!');
+          setRaceVisible(true);
+        }
+        break;
+
+      case 'SKY_SPRINT':
+        updateSkySprint(player,keys,dt,yaw,race,showToast);
+        if(race.playerFinished){
+          race.finished=true;
+          returnTimer=0;
+          gameState.set('RACE_RESULTS');
+          const board=skySprintLeaderboard(race);
+          const place=board.findIndex(x=>x.name==='YOU')+1;
+          showToast(place===1?'1ST PLACE! 🏆':'FINISHED — PLACE '+place);
+        }
+        break;
+
+      case 'RACE_RESULTS':
+        returnTimer+=dt;
+        if(returnTimer>2){
+          race.finished=false;
+          race.playerFinished=false;
+          race.playerFinishTime=null;
+          race.rivalFinishTimes=[];
+          returnTimer=0;
+          startTargetMayhem();
+          gameState.set('TARGET_MAYHEM');
+        }
+        break;
+
+      case 'TARGET_MAYHEM':
+        updateTargetMayhem(dt);
+        break;
+
+      case 'TARGET_RESULTS':
+        targetResultTimer+=dt;
+        if(targetResultTimer>1.5){
+          document.querySelector('#eventName').textContent='NEXT EVENT';
+          document.querySelector('#venue').innerHTML='<b>OLYMPIC PLAZA</b><span>Ready for the next mini-game</span>';
+          setRaceVisible(false);
+          targetResultTimer=0;
+          gameState.set('HUB');
+        }
+        break;
+
+      case 'HUB':
+        updatePlayer(player,keys,dt,yaw,showToast);
+        break;
+    }
+
+    updateCamera(camera,player,yaw,gameState.state==='SKY_SPRINT' ? .28 : pitch);
+
+    if(gameState.state==='TARGET_MAYHEM'){
+      document.querySelector('#raceHud').style.display='block';
+      document.querySelector('#raceBoard').style.display='none';
+      document.querySelector('#raceState').textContent='TARGET MAYHEM';
+      document.querySelector('#raceTime').textContent=Math.max(0,targetTime).toFixed(1)+'s';
+      document.querySelector('#raceCheckpoint').textContent='CLICK TARGETS';
+      document.querySelector('#raceStats').textContent='SCORE '+targetScore;
+    }
+
+    updateUI(
+      player,dt,
+      gameState.state==='SKY_SPRINT'||gameState.state==='RACE_RESULTS',
+      gameState.state==='TARGET_MAYHEM'||gameState.state==='TARGET_RESULTS'
+    );
+    updateRaceHUD();
+    renderer.render(scene,camera);
+    window.MGO_DEBUG.lastFrame=performance.now();
+    window.MGO_DEBUG.lastError=null;
+  }catch(err){
+    window.MGO_DEBUG.lastError=String(err&&err.stack||err);
+    console.error('Mini Game Olympics runtime error:',err);
+    renderer.render(scene,camera);
+    const e=document.querySelector('#debugError');
+    if(e){
+      e.style.display='block';
+      e.textContent='RUNTIME ERROR\\n'+window.MGO_DEBUG.lastError;
+    }
+  }
 }
-try{loop()}catch(err){console.error(err);const e=document.createElement('div');e.style='position:fixed;inset:20px;background:#200;color:#fff;padding:20px;z-index:99;font:16px monospace;white-space:pre-wrap';e.textContent='GAME ERROR\\n'+err.stack;document.body.appendChild(e)}
+window.MGO_DEBUG={
+  getState:()=>gameState.state,
+  getSnapshot:()=>({state:gameState.state,skyCountdown,targetTime,targetScore,raceActive:race.active,raceFinished:race.finished,playerFinished:race.playerFinished}),
+  lastFrame:performance.now(),
+  lastError:null
+};
+const debugError=document.createElement('pre');
+debugError.id='debugError';
+debugError.style='display:none;position:fixed;left:12px;right:12px;bottom:12px;max-height:40vh;overflow:auto;background:#2b1111;color:#fff;padding:12px;border:1px solid #f55;border-radius:10px;z-index:9999;font:12px monospace;white-space:pre-wrap';
+document.body.appendChild(debugError);
+loop()catch(err){console.error(err);const e=document.createElement('div');e.style='position:fixed;inset:20px;background:#200;color:#fff;padding:20px;z-index:99;font:16px monospace;white-space:pre-wrap';e.textContent='GAME ERROR\\n'+err.stack;document.body.appendChild(e)}
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
