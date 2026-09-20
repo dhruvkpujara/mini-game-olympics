@@ -34,7 +34,7 @@ const ui = await readFile(path.join(root, "js/ui.js"), "utf8");
 const boot = await readFile(path.join(root, "js/boot.js"), "utf8");
 
 assert(index.includes("js/boot.js"), "Boot loader missing");
-assert(index.includes("id="bootScreen""), "Loading screen missing");
+assert(index.includes('id="bootScreen"'), "Loading screen missing");
 assert(boot.includes("cdn.jsdelivr.net/npm/three@0.160.0"), "Primary Three.js CDN missing");
 assert(boot.includes("unpkg.com/three@0.160.0"), "Three.js fallback CDN missing");
 assert(boot.includes("MGO_DEBUG"), "Boot loader readiness check missing");
