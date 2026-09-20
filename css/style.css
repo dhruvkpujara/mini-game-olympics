@@ -40,3 +40,7 @@
   #controls{left:12px;right:12px;bottom:12px;text-align:center}
   .race-hud{min-width:220px}
 }
+/* Polish pass 02 */
+.race-hud{border-radius:20px}
+.race-hud b{font-size:13px}
+.race-hud small{letter-spacing:.25px}
