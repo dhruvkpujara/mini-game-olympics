@@ -118,3 +118,12 @@ assert(main.includes("Rivals are active participants too"), "Rivals must partici
 assert(sky.includes("lastSafePlatform=0"), "Sky Sprint must start from the first safe platform");
 assert(sky.includes("const idx=Math.max(0,race.lastSafePlatform||0)"), "Sky Sprint respawn must use the last safely landed platform");
 assert(!sky.includes("race.segments[race.checkpoint+1]+3"), "Checkpoint must not advance just by crossing a Z threshold");
+
+// Tournament/results regressions
+assert(main.includes("resultHoldSeconds=7"), "Results must stay visible long enough to read");
+assert(main.includes("if(returnTimer>resultHoldSeconds)"), "Sky Sprint must respect results hold time");
+assert(main.includes("if(targetResultTimer>resultHoldSeconds)"), "Target Mayhem must respect results hold time");
+assert(main.includes("you.score=targetScore"), "Player Target Mayhem score must feed tournament points");
+assert(main.includes("const target=g.userData.targetMesh;if(!target.visible)"), "Target respawn timer must track the hit target mesh");
+assert(main.includes("target.visible=false;g.userData.respawnTimer=.65"), "Hit targets must schedule a respawn without hiding the whole target group");
+assert(!main.includes("target.visible=false;g.visible=false"), "Target group must remain active while its face respawns");
