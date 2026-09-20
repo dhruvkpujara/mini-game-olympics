@@ -127,3 +127,11 @@ assert(main.includes("you.score=targetScore"), "Player Target Mayhem score must 
 assert(main.includes("const target=g.userData.targetMesh;if(!target.visible)"), "Target respawn timer must track the hit target mesh");
 assert(main.includes("target.visible=false;g.userData.respawnTimer=.65"), "Hit targets must schedule a respawn without hiding the whole target group");
 assert(!main.includes("target.visible=false;g.visible=false"), "Target group must remain active while its face respawns");
+
+assert(main.includes("TOURNAMENT STANDINGS"), "Tournament leaderboard must be rendered during results");
+assert(main.includes("allRivalsFinished"), "Next event must wait for rival finishes");
+assert(main.includes("returnTimer>15"), "Race results need a maximum wait");
+assert(main.includes("hit:false"), "Target hit state missing");
+assert(main.includes("if(g.userData.hit){g.userData.respawnTimer-=dt"), "Target respawn timer must run after a hit");
+assert(main.includes("g.userData.hit=true"), "Target hit must arm respawn");
+assert(main.includes("targetArenaPlayers[0].score=targetScore"), "Target score must feed tournament player score");
