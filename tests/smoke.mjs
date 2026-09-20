@@ -100,3 +100,11 @@ assert(main.includes("SCORE '+targetScore+' · HITS '"), "Target HUD must expose
 
 assert(main.includes("back=new THREE.Mesh"), "Target backing mesh must be declared");
 assert(main.includes("ring=new THREE.Mesh"), "Target ring mesh must be declared");
+
+assert(main.includes("targetColors=["), "Target colour scoring table missing");
+assert(main.includes("points:500"), "High-value purple target missing");
+assert(main.includes("spawnTarget(g,i)"), "Target respawn/spawn helper missing");
+assert(main.includes("targetScore+=pts"), "Colour-based target scoring missing");
+assert(main.includes("updateTargetCamera()"), "Target Mayhem camera helper missing");
+assert(main.includes("targetArenaPlayers"), "Target Mayhem participant list missing");
+assert(main.includes("Rivals are active participants too"), "Rivals must participate in Target Mayhem");
