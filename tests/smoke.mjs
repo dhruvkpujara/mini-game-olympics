@@ -57,6 +57,8 @@ assert(main.includes("RACE_RESULTS"), "Race results state missing");
 assert(main.includes("TARGET_MAYHEM"), "Target Mayhem state missing");
 assert(main.includes("TARGET_RESULTS"), "Target results state missing");
 assert(main.includes("setRaceVisible"), "Race HUD visibility helper missing");
+assert(main.includes("addEventListener('blur'"), "Input reset on window blur missing");
+assert(main.includes("document.addEventListener('visibilitychange'"), "Input reset on tab visibility change missing");
 assert(main.includes("targetMeshes=[]"), "Target mesh hit list missing");
 assert(main.includes("targetRay.intersectObjects(targetMeshes,false)"), "Target raycast must only hit target faces");
 assert(main.includes("target.userData.hitTarget=true"), "Target hit metadata missing");
