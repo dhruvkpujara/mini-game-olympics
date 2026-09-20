@@ -8,7 +8,11 @@ function createSkySprint(scene){
     const x=Math.sin(i*1.7)*7;
     box(18,1.2,12,x,9,z,mat.platform);
     box(18.4,.18,.35,x,9.65,z-5.7,mat.edge);
+    if(i<segments.length-1) box(.28,.45,10,x-8.8,10.0,z,mat.white);
   });
+  // Start gate and course markers
+  box(1,6,1,-8,12,-116,mat.white);box(1,6,1,8,12,-116,mat.white);box(17,1,1,0,15,-116,mat.gold);box(17,.35,.7,0,12,-116,mat.red);
+  for(let i=0;i<5;i++)box(2,.15,1,-8+i*4,9.72,-113.5, i%2?mat.white:mat.gold);
   // gaps / moving obstacle bars
   for(let i=1;i<segments.length-1;i++){
     const z=segments[i],x=Math.sin(i*1.7)*7;
@@ -22,12 +26,13 @@ function createSkySprint(scene){
   [0,3,6].forEach(i=>{
     const z=segments[i+1],x=Math.sin((i+1)*1.7)*7;
     const ring=new THREE.Mesh(new THREE.TorusGeometry(5.2,.25,8,32),mat.white);
-    ring.position.set(x,12,z);root.add(ring);
+    ring.position.set(x,12,z);ring.userData={checkpointRing:true,phase:i};root.add(ring);
   });
   // finish gate
   const fz=18,fx=Math.sin(8*1.7)*7;
   box(.8,7,.8,fx-7,12.5,fz,mat.white);box(.8,7,.8,fx+7,12.5,fz,mat.white);box(15,1,1,fx,15.8,fz,mat.gold);
   box(15,.25,.8,fx,12,fz,mat.red);
+  box(15,.12,.12,fx,14.7,fz,mat.white);
   // Rival athletes use the exact same character model as the player.
   const rivals=[];
   const rivalColors=[0xe74c3c,0x16a085,0x8e44ad,0xf39c12,0x34495e];
@@ -77,6 +82,10 @@ function updateSkySprint(player,keys,dt,yaw,race,toast){
   // Interactive boost pads and collectibles
   for(const pad of race.boosts){if(pad.userData.cool>0)pad.userData.cool-=dt;if(pad.userData.cool<=0&&Math.abs(player.position.x-pad.position.x)<4&&Math.abs(player.position.z-pad.position.z)<2&&Math.abs(player.position.y-pad.position.y)<2){pad.userData.cool=1.2;race.boost=2.2;toast('BOOST PAD! +SPEED')}}
   for(const c of race.coins){if(!c.visible)continue;c.rotation.z+=dt*4;c.position.y=c.userData.baseY+Math.sin(performance.now()/250+c.userData.phase)*.35;if(player.position.distanceTo(c.position)<1.6){c.visible=false;race.coinCount++;toast('COIN +1')}}
+  // Visual feedback for race elements
+  for(const ring of race.root.children){if(ring.userData?.checkpointRing){ring.rotation.z+=dt*1.5;ring.scale.setScalar(1+Math.sin(elapsed*4+ring.userData.phase)*.06)}}
+  for(const pad of race.boosts){const pulse=1+Math.sin(elapsed*7)*.08;pad.scale.x=pulse;pad.scale.z=pulse}
+  for(const o of race.obstacles){o.rotation.z+=dt*1.8}
   // Solid obstacle collision: push the player away and apply a short slowdown.
   race.hitCooldown=Math.max(0,(race.hitCooldown||0)-dt);
   for(const o of race.obstacles){
