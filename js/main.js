@@ -118,5 +118,5 @@ const debugError=document.createElement('pre');
 debugError.id='debugError';
 debugError.style='display:none;position:fixed;left:12px;right:12px;bottom:12px;max-height:40vh;overflow:auto;background:#2b1111;color:#fff;padding:12px;border:1px solid #f55;border-radius:10px;z-index:9999;font:12px monospace;white-space:pre-wrap';
 document.body.appendChild(debugError);
-loop()catch(err){console.error(err);const e=document.createElement('div');e.style='position:fixed;inset:20px;background:#200;color:#fff;padding:20px;z-index:99;font:16px monospace;white-space:pre-wrap';e.textContent='GAME ERROR\\n'+err.stack;document.body.appendChild(e)}
+loop()
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
