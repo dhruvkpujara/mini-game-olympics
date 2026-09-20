@@ -88,3 +88,7 @@ console.log("✅ Syntax checks passed");
 console.log("✅ State-machine checks passed");
 console.log("✅ HUD/timer isolation checks passed");
 console.log("✅ Sky Sprint obstacle checks passed");
+
+assert(main.includes("targetHits=0"), "Target Mayhem hit counter must initialize");
+assert(main.includes("targetHits++"), "Target hits must increment on successful hit");
+assert(main.includes("SCORE '+targetScore+' · HITS '"), "Target HUD must expose hit feedback");
