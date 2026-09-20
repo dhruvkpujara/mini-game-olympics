@@ -1,0 +1,77 @@
+(()=> {
+  const boot=document.getElementById('bootScreen');
+  const status=document.getElementById('bootStatus');
+  const bar=document.getElementById('bootProgress');
+  const detail=document.getElementById('bootDetail');
+
+  const setProgress=(value,text,extra='')=>{
+    if(bar)bar.style.width=Math.max(0,Math.min(100,value))+'%';
+    if(status)status.textContent=text;
+    if(detail)detail.textContent=extra;
+  };
+
+  const fail=(message,extra='')=>{
+    if(boot)boot.classList.add('boot-error');
+    setProgress(100,'GAME COULD NOT START',message);
+    if(detail)detail.textContent=extra||'Open the browser console for technical details.';
+  };
+
+  const loadScript=(src,label)=>{
+    return new Promise((resolve,reject)=>{
+      setProgress(Number(boot?.dataset.progress||0),label);
+      const s=document.createElement('script');
+      s.src=src;
+      s.onload=()=>resolve();
+      s.onerror=()=>reject(new Error('Failed to load '+src));
+      document.body.appendChild(s);
+    });
+  };
+
+  const localFiles=[
+    ['js/player.js?v=8','Loading player...'],
+    ['js/camera.js?v=2','Loading camera...'],
+    ['js/world.js?v=2','Loading Olympic Village...'],
+    ['js/sky_sprint.js?v=8','Loading Sky Sprint...'],
+    ['js/ui.js?v=4','Loading interface...'],
+    ['js/game_state.js?v=2','Loading game state...'],
+    ['js/main.js?v=12','Starting 3D engine...']
+  ];
+
+  async function start(){
+    try{
+      boot.dataset.progress='5';
+      setProgress(5,'Checking 3D engine...','Loading Three.js');
+      try{
+        await loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js','Loading Three.js...');
+      }catch(primary){
+        setProgress(12,'Trying backup 3D engine...','Primary CDN unavailable');
+        await loadScript('https://unpkg.com/three@0.160.0/build/three.min.js','Loading backup Three.js...');
+      }
+      if(!window.THREE)throw new Error('Three.js loaded but the THREE global is missing.');
+
+      for(let i=0;i<localFiles.length;i++){
+        const [src,label]=localFiles[i];
+        boot.dataset.progress=String(15+i*12);
+        setProgress(15+i*12,label,src.split('?')[0]);
+        await loadScript(src,label);
+      }
+
+      if(!window.MGO_DEBUG)throw new Error('Game engine loaded without its debug interface.');
+      setProgress(100,'READY!','Launching Olympic Village');
+      setTimeout(()=>{
+        document.body.classList.add('game-ready');
+        if(boot)boot.setAttribute('aria-hidden','true');
+      },250);
+    }catch(err){
+      console.error('[Mini Game Olympics boot]',err);
+      fail(err.message||String(err),'Check your network connection and browser console. The loader stopped before the game was ready.');
+    }
+  }
+
+  window.addEventListener('error',event=>{
+    if(!document.body.classList.contains('game-ready'))return;
+    console.error('[Mini Game Olympics runtime]',event.error||event.message);
+  });
+
+  start();
+})();
