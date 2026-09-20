@@ -62,6 +62,10 @@ assert(!main.includes("skyCountdown===0"), "Fragile exact-zero countdown check s
 assert(ui.includes("if(!inRace&&!inTarget)"), "Hub timer must pause during mini-games");
 assert(sky.includes("userData={obstacle:true"), "Obstacles must be tagged explicitly");
 assert(sky.includes("o.userData.obstacle"), "Obstacle list must exclude coins and other objects");
+assert(sky.includes("race.coinCount=0"), "Race coin count must not overwrite coin objects");
+assert(!sky.includes("race.coins=0"), "Race coin object array must not be overwritten");
+assert(sky.includes("race.coinCount++"), "Collected coins must increment coin count");
+assert(!m.result.content.includes("race.coins=0"), "Main must not overwrite Sky Sprint coin array");
 assert(state.includes("function create"), "State factory missing");
 
 const vm = await import("node:vm");
