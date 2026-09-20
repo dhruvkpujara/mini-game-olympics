@@ -108,3 +108,7 @@ assert(main.includes("targetScore+=pts"), "Colour-based target scoring missing")
 assert(main.includes("updateTargetCamera()"), "Target Mayhem camera helper missing");
 assert(main.includes("targetArenaPlayers"), "Target Mayhem participant list missing");
 assert(main.includes("Rivals are active participants too"), "Rivals must participate in Target Mayhem");
+
+assert(s.includes("lastSafePlatform=0"), "Sky Sprint must start from the first safe platform");
+assert(s.includes("const idx=Math.max(0,race.lastSafePlatform||0)"), "Sky Sprint respawn must use the last safely landed platform");
+assert(!s.includes("race.segments[race.checkpoint+1]+3"), "Checkpoint must not advance just by crossing a Z threshold");
