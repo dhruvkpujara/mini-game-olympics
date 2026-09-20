@@ -19,7 +19,7 @@ function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.
   if(race.finished){returnTimer+=dt;if(returnTimer>2){race.finished=false;race.playerFinished=false;race.playerFinishTime=null;race.rivalFinishTimes=[];returnTimer=0;startTargetMayhem()}}
   updateCamera(camera,player,yaw,race.active?.28:pitch);if(secondGame){document.querySelector('#raceHud').style.display='block';document.querySelector('#raceBoard').style.display='none';document.querySelector('#raceState').textContent='TARGET MAYHEM';document.querySelector('#raceTime').textContent=Math.max(0,targetTime).toFixed(1)+'s';document.querySelector('#raceCheckpoint').textContent='CLICK TARGETS';document.querySelector('#raceStats').textContent='SCORE '+targetScore;}
   
-  updateUI(player,dt);updateRaceHUD();renderer.render(scene,camera)
+  updateUI(player,dt,race.active||race.finished||skyCountdown<0,secondGame);updateRaceHUD();renderer.render(scene,camera)
 }
 try{loop()}catch(err){console.error(err);const e=document.createElement('div');e.style='position:fixed;inset:20px;background:#200;color:#fff;padding:20px;z-index:99;font:16px monospace;white-space:pre-wrap';e.textContent='GAME ERROR\\n'+err.stack;document.body.appendChild(e)}
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
