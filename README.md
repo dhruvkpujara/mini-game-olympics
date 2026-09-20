@@ -235,6 +235,10 @@ The repository Issues tab is the development task board. Each major bug or featu
 
 Keep issues small enough to implement and test independently.
 
+## 🧪 Testing & Regression Safety
+
+See [`TESTING.md`](TESTING.md) for automated smoke checks and manual browser test cases. GitHub Actions runs `tests/smoke.mjs` on every push and pull request. The stability rule is simple: **test the existing game before adding the next feature**.
+
 ## 🤝 Development Philosophy
 
 Build one playable system at a time.
