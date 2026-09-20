@@ -40,9 +40,9 @@ function createSkySprint(scene){
 }
 
 function startSkySprint(player,race){
-  race.active=true;race.finished=false;race.time=0;race.startTime=performance.now();race.checkpoint=0;race.message='GO!';race.hitCooldown=0;
+  race.active=true;race.finished=false;race.time=0;race.startTime=performance.now();race.checkpoint=0;race.message='GO!';race.hitCooldown=0;race.playerFinished=false;race.rivalFinishTimes=[null,null,null,null,null];
   player.position.set(0,9.8,-110);
-  race.rivals.forEach((r,i)=>{r.visible=true;r.position.set((i-2)*3,9.8,-110-Math.min(i,2)*1.5);r.userData.vy=0;r.userData.raceSpeed=5.8+i*.45;r.userData.racePhase=i*.9;});player.rotation.set(0,0,0);player.visible=true;
+  race.rivals.forEach((r,i)=>{r.visible=true;r.position.set((i-2)*3,9.8,-110-Math.min(i,2)*1.5);r.userData.vy=0;r.userData.raceSpeed=7.4+i*.28;r.userData.racePhase=i*.9;r.userData.finished=false;});player.rotation.set(0,0,0);player.visible=true;
 }
 
 function updateSkySprint(player,keys,dt,yaw,race,toast){
@@ -86,7 +86,13 @@ function updateSkySprint(player,keys,dt,yaw,race,toast){
       if(race.hitCooldown<=0){race.time+=0.8;race.hitCooldown=.5;toast('OBSTACLE HIT! +0.8s');}
     }
   }
-  if(player.position.z>race.finishZ-3){race.finished=true;race.active=false;toast('FINISH! '+race.time.toFixed(2)+'s');player.position.z=race.finishZ-2}
+  if(player.position.z>race.finishZ-3 && !race.playerFinished){
+    race.playerFinished=true;
+    race.playerFinishTime=race.time;
+    race.active=false;
+    toast('FINISH! '+race.time.toFixed(2)+'s');
+    player.position.z=race.finishZ-2;
+  }
   for(const o of race.obstacles){o.position.x=o.userData.baseX+Math.sin(performance.now()/600+o.userData.phase)*3}
   race.rivals.forEach((r,i)=>{
     if(!r.visible)return;
@@ -94,11 +100,17 @@ function updateSkySprint(player,keys,dt,yaw,race,toast){
     r.position.x += Math.sin(elapsed*1.8+r.userData.racePhase)*dt*1.5;
     r.position.y=9.8;
     r.rotation.y=Math.PI;
-    if(r.position.z>race.finishZ)r.position.z=race.finishZ;
+    if(r.position.z>race.finishZ && !r.userData.finished){
+      r.position.z=race.finishZ;
+      r.userData.finished=true;
+      race.rivalFinishTimes[i]=(performance.now()-race.startTime)/1000;
+    }
   });
 }
 
-function skySprintLeaderboard(time){
-  const base=[Math.max(8.8,time+1.1),Math.max(9.4,time+1.8),Math.max(10.1,time+2.4),Math.max(10.8,time+3.2),Math.max(11.5,time+4.1)];
-  return [{name:'YOU',time:time}].concat(base.map((t,i)=>({name:['Bolt','Nova','Dash','Rocket','Flash'][i],time:t}))).sort((a,b)=>a.time-b.time);
+function skySprintLeaderboard(race){
+  const rows=[{name:'YOU',time:race.playerFinishTime??Infinity,finished:race.playerFinished}];
+  const names=['Bolt','Nova','Dash','Rocket','Flash'];
+  race.rivalFinishTimes.forEach((t,i)=>rows.push({name:names[i],time:t??Infinity,finished:t!==null}));
+  return rows.sort((a,b)=>a.time-b.time);
 }
