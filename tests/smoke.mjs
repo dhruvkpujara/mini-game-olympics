@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 const root = process.cwd();
 const files = [
   "index.html",
+  "js/boot.js",
   "js/game_state.js",
   "js/main.js",
   "js/ui.js",
@@ -30,8 +31,13 @@ const main = await readFile(path.join(root, "js/main.js"), "utf8");
 const sky = await readFile(path.join(root, "js/sky_sprint.js"), "utf8");
 const state = await readFile(path.join(root, "js/game_state.js"), "utf8");
 const ui = await readFile(path.join(root, "js/ui.js"), "utf8");
+const boot = await readFile(path.join(root, "js/boot.js"), "utf8");
 
-assert(index.includes("three@0.160.0/build/three.min.js"), "Three.js CDN missing");
+assert(index.includes("js/boot.js"), "Boot loader missing");
+assert(index.includes("id="bootScreen""), "Loading screen missing");
+assert(boot.includes("cdn.jsdelivr.net/npm/three@0.160.0"), "Primary Three.js CDN missing");
+assert(boot.includes("unpkg.com/three@0.160.0"), "Three.js fallback CDN missing");
+assert(boot.includes("MGO_DEBUG"), "Boot loader readiness check missing");
 for (const script of [
   'js/player.js',
   'js/camera.js',
