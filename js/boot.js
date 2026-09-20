@@ -31,7 +31,7 @@
     ['js/player.js?v=8','Loading player...'],
     ['js/camera.js?v=2','Loading camera...'],
     ['js/world.js?v=2','Loading Olympic Village...'],
-    ['js/sky_sprint.js?v=10','Loading Sky Sprint...'],
+    ['js/sky_sprint.js?v=11','Loading Sky Sprint...'],
     ['js/ui.js?v=4','Loading interface...'],
     ['js/game_state.js?v=2','Loading game state...'],
     ['js/main.js?v=17','Starting 3D engine...']
