@@ -9,6 +9,7 @@ let skyCountdown=5,returnTimer=0,elapsed=0,secondGame=false,targetTime=30,target
 const gameState=MGOGameState.create('SKY_COUNTDOWN');
 function setRaceVisible(v){const h=document.querySelector('#raceHud');const b=document.querySelector('#raceBoard');if(h)h.style.display=v?'block':'none';if(b)b.style.display=(v&&race&&race.finished)?'block':'none'}
 function clearTargets(){for(const t of targets)scene.remove(t);targets=[];targetMeshes=[]}
+function respawnTarget(g,i){if(!secondGame)return;spawnTarget(g,i);g.userData.respawnTimer=0}
 const targetColors=[
   {name:'GREEN',color:0x43d17a,points:50},
   {name:'BLUE',color:0x3b82f6,points:100},
@@ -41,11 +42,11 @@ function startTargetMayhem(){
   for(let i=0;i<9;i++){
     const g=new THREE.Group(),pole=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,4,8),new THREE.MeshStandardMaterial({color:0x263746})),back=new THREE.Mesh(new THREE.CylinderGeometry(2.35,2.35,.2,24),new THREE.MeshStandardMaterial({color:0x182432})),target=new THREE.Mesh(new THREE.CylinderGeometry(2,2,.35,24),new THREE.MeshStandardMaterial({color:0xffffff})),ring=new THREE.Mesh(new THREE.TorusGeometry(1.25,.16,8,24),new THREE.MeshStandardMaterial({color:0xffffff,emissive:0x555555,emissiveIntensity:.35}));
     pole.position.y=2;back.position.y=4;target.position.y=4;ring.position.y=4;target.rotation.x=Math.PI/2;back.rotation.x=Math.PI/2;ring.rotation.x=Math.PI/2;
-    target.userData.hitTarget=true;g.userData={target:true,phase:i,targetMesh:target};g.add(pole,back,target,ring);scene.add(g);targets.push(g);targetMeshes.push(target);spawnTarget(g,i);
+    target.userData.hitTarget=true;g.userData={target:true,phase:i,targetMesh:target,respawnTimer:0};g.add(pole,back,target,ring);scene.add(g);targets.push(g);targetMeshes.push(target);spawnTarget(g,i);
   }
   showToast('TARGET MAYHEM! HIT COLOURED TARGETS!');
 }
-function updateTargetMayhem(dt){if(!secondGame)return;targetTime-=dt;targetFlash=Math.max(0,targetFlash-dt);for(const g of targets){if(!g.visible)continue;g.rotation.y+=dt*1.5;g.position.x=Math.max(-12,Math.min(12,g.position.x+Math.sin(elapsed*2+g.userData.phase)*dt*2));g.position.y=Math.sin(elapsed*1.8+g.userData.phase)*.25}if(targetTime<=0){targetTime=0;secondGame=false;gameState.set('TARGET_RESULTS');targetResultTimer=0;showToast('TIME! SCORE '+targetScore);clearTargets();document.querySelector('#eventName').textContent='RESULTS';document.querySelector('#venue').innerHTML='<b>CHALLENGE ARENA</b><span>Target Mayhem complete · Score '+targetScore+'</span>';setTimeout(()=>{document.querySelector('#eventName').textContent='NEXT EVENT';document.querySelector('#venue').innerHTML='<b>OLYMPIC PLAZA</b><span>Ready for the next mini-game</span>'},1500)}}
+function updateTargetMayhem(dt){if(!secondGame)return;targetTime-=dt;targetFlash=Math.max(0,targetFlash-dt);for(const g of targets){if(!g.visible){if(g.userData.respawnTimer>0){g.userData.respawnTimer-=dt;if(g.userData.respawnTimer<=0)respawnTarget(g,g.userData.phase)}continue}g.rotation.y+=dt*1.5;g.position.x=Math.max(-12,Math.min(12,g.position.x+Math.sin(elapsed*2+g.userData.phase)*dt*2));g.position.y=Math.sin(elapsed*1.8+g.userData.phase)*.25}if(targetTime<=0){targetTime=0;secondGame=false;gameState.set('TARGET_RESULTS');targetResultTimer=0;showToast('TIME! SCORE '+targetScore);clearTargets();document.querySelector('#eventName').textContent='RESULTS';document.querySelector('#venue').innerHTML='<b>CHALLENGE ARENA</b><span>Target Mayhem complete · Score '+targetScore+'</span>';setTimeout(()=>{document.querySelector('#eventName').textContent='NEXT EVENT';document.querySelector('#venue').innerHTML='<b>OLYMPIC PLAZA</b><span>Ready for the next mini-game</span>'},1500)}}
 function shootTarget(e){
   if(!secondGame)return;
   const r=renderer.domElement.getBoundingClientRect();mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;
@@ -53,7 +54,7 @@ function shootTarget(e){
   if(hits.length){
     const target=hits[0].object;if(target.visible){
       const g=targets.find(x=>x.userData.targetMesh===target&&x.visible);
-      if(g){target.visible=false;g.visible=false;const pts=g.userData.points||100;targetScore+=pts;targetHits++;targetFlash=.25;showToast('🎯 '+g.userData.colorName+' TARGET! +'+pts+' · SCORE '+targetScore);}
+      if(g){target.visible=false;g.visible=false;g.userData.respawnTimer=.65;const pts=g.userData.points||100;targetScore+=pts;targetHits++;targetFlash=.25;showToast('🎯 '+g.userData.colorName+' TARGET! +'+pts+' · SCORE '+targetScore);}
     }
   }else{targetFlash=.08;showToast('MISS')}
 }
