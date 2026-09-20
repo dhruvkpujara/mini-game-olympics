@@ -135,3 +135,6 @@ assert(main.includes("hit:false"), "Target hit state missing");
 assert(main.includes("if(g.userData.hit){g.userData.respawnTimer-=dt"), "Target respawn timer must run after a hit");
 assert(main.includes("g.userData.hit=true"), "Target hit must arm respawn");
 assert(main.includes("targetArenaPlayers[0].score=targetScore"), "Target score must feed tournament player score");
+
+assert(main.includes("renderTargetLeaderboard()"), "Target Mayhem leaderboard renderer missing");
+assert(main.includes("if(gameState.state==='TARGET_RESULTS')"), "Target Mayhem results leaderboard state missing");
