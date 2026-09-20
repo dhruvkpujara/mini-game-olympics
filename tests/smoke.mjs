@@ -51,11 +51,9 @@ for (const script of [
 }
 
 assert(main.includes("MGOGameState"), "Main loop is not using the game state machine");
-assert(main.includes("SKY_COUNTDOWN"), "Sky countdown state missing");
-assert(main.includes("SKY_SPRINT"), "Sky Sprint state missing");
-assert(main.includes("RACE_RESULTS"), "Race results state missing");
-assert(main.includes("TARGET_MAYHEM"), "Target Mayhem state missing");
-assert(main.includes("TARGET_RESULTS"), "Target results state missing");
+for (const eventState of ["SKY_COUNTDOWN","SKY_SPRINT","RACE_RESULTS","TARGET_MAYHEM","TARGET_RESULTS"]) {
+  assert(state.includes(eventState), `Game state missing: ${eventState}`);
+}
 assert(main.includes("setRaceVisible"), "Race HUD visibility helper missing");
 assert(main.includes("addEventListener('blur'"), "Input reset on window blur missing");
 assert(main.includes("document.addEventListener('visibilitychange'"), "Input reset on tab visibility change missing");
@@ -70,7 +68,7 @@ assert(sky.includes("o.userData.obstacle"), "Obstacle list must exclude coins an
 assert(sky.includes("race.coinCount=0"), "Race coin count must not overwrite coin objects");
 assert(!sky.includes("race.coins=0"), "Race coin object array must not be overwritten");
 assert(sky.includes("race.coinCount++"), "Collected coins must increment coin count");
-assert(!m.result.content.includes("race.coins=0"), "Main must not overwrite Sky Sprint coin array");
+assert(!main.includes("race.coins=0"), "Main must not overwrite Sky Sprint coin array");
 assert(state.includes("function create"), "State factory missing");
 
 const vm = await import("node:vm");
