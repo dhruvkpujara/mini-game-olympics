@@ -235,6 +235,12 @@ The repository Issues tab is the development task board. Each major bug or featu
 
 Keep issues small enough to implement and test independently.
 
+## 🚦 Startup & Loading
+
+The app now uses a dedicated boot loader instead of immediately executing every game script. The loader checks Three.js, falls back to a second CDN if the primary one fails, loads the game modules in dependency order, shows progress, and only reveals the game after the engine is ready.
+
+For startup problems, do not guess from a frozen screen: the loader stops with a visible error message and the automated smoke tests verify the boot entrypoint.
+
 ## 🧪 Testing & Regression Safety
 
 See [`TESTING.md`](TESTING.md) for automated smoke checks and manual browser test cases. GitHub Actions runs `tests/smoke.mjs` on every push and pull request. The stability rule is simple: **test the existing game before adding the next feature**.
