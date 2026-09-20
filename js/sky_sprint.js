@@ -55,7 +55,7 @@ function updateSkySprint(player,keys,dt,yaw,race,toast){
   const f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));
   const r=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
   const d=new THREE.Vector3();
-  if(keys.KeyW)d.add(f);if(keys.KeyS)d.sub(f);if(keys.KeyA)d.x-=1;if(keys.KeyD)d.x+=1;
+  if(keys.KeyW)d.add(f);if(keys.KeyS)d.sub(f);if(keys.KeyA)d.add(r);if(keys.KeyD)d.sub(r);
   if(d.lengthSq()){d.normalize();let speed=(keys.ShiftLeft||keys.ShiftRight?15:8);if(race.boost>0){speed+=7;race.boost=Math.max(0,race.boost-dt)}player.position.addScaledVector(d,speed*dt);player.rotation.y=Math.atan2(d.x,d.z)}
   if(keys.Space&&u.ground){u.vy=9;u.ground=false}
   u.vy-=24*dt;player.position.y+=u.vy*dt;
