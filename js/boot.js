@@ -3,6 +3,7 @@
   const status=document.getElementById('bootStatus');
   const bar=document.getElementById('bootProgress');
   const detail=document.getElementById('bootDetail');
+  let currentScript='boot';
 
   const setProgress=(value,text,extra='')=>{
     if(bar)bar.style.width=Math.max(0,Math.min(100,value))+'%';
@@ -20,6 +21,7 @@
     return new Promise((resolve,reject)=>{
       setProgress(Number(boot?.dataset.progress||0),label);
       const s=document.createElement('script');
+      currentScript=src;
       s.src=src;
       s.onload=()=>resolve();
       s.onerror=()=>reject(new Error('Failed to load '+src));
@@ -28,13 +30,13 @@
   };
 
   const localFiles=[
-    ['js/player.js?v=8','Loading player...'],
-    ['js/camera.js?v=2','Loading camera...'],
-    ['js/world.js?v=2','Loading Olympic Village...'],
-    ['js/sky_sprint.js?v=11','Loading Sky Sprint...'],
-    ['js/ui.js?v=4','Loading interface...'],
-    ['js/game_state.js?v=2','Loading game state...'],
-    ['js/main.js?v=17','Starting 3D engine...']
+    ['js/player.js?v=9','Loading player...'],
+    ['js/camera.js?v=3','Loading camera...'],
+    ['js/world.js?v=3','Loading Olympic Village...'],
+    ['js/sky_sprint.js?v=12','Loading Sky Sprint...'],
+    ['js/ui.js?v=5','Loading interface...'],
+    ['js/game_state.js?v=3','Loading game state...'],
+    ['js/main.js?v=18','Starting 3D engine...']
   ];
 
   async function start(){
@@ -69,8 +71,17 @@
   }
 
   window.addEventListener('error',event=>{
-    if(!document.body.classList.contains('game-ready'))return;
-    console.error('[Mini Game Olympics runtime]',event.error||event.message);
+    const message=event.error?.stack||event.message||'Unknown script error';
+    console.error('[Mini Game Olympics error]',message);
+    if(!document.body.classList.contains('game-ready')){
+      fail('Failed while loading '+currentScript,message);
+    }
+  });
+
+  window.addEventListener('unhandledrejection',event=>{
+    const reason=event.reason?.stack||event.reason?.message||String(event.reason||'Unknown promise error');
+    console.error('[Mini Game Olympics promise error]',reason);
+    if(!document.body.classList.contains('game-ready'))fail('Startup promise failed while loading '+currentScript,reason);
   });
 
   start();
