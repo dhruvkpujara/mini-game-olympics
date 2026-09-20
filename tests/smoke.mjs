@@ -121,7 +121,7 @@ assert(!sky.includes("race.segments[race.checkpoint+1]+3"), "Checkpoint must not
 
 // Tournament/results regressions
 assert(main.includes("resultHoldSeconds=7"), "Results must stay visible long enough to read");
-assert(main.includes("if(returnTimer>resultHoldSeconds)"), "Sky Sprint must respect results hold time");
+assert(main.includes("allRivalsFinished&&returnTimer>resultHoldSeconds"), "Sky Sprint must respect results hold time before next event");
 assert(main.includes("if(targetResultTimer>resultHoldSeconds)"), "Target Mayhem must respect results hold time");
 assert(main.includes("you.score=targetScore"), "Player Target Mayhem score must feed tournament points");
 assert(main.includes("const target=g.userData.targetMesh;if(!target.visible)"), "Target respawn timer must track the hit target mesh");
