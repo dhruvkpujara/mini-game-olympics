@@ -10,6 +10,7 @@ const files = [
   "js/boot.js",
   "js/game_state.js",
   "js/main.js",
+  "js/tournament.js",
   "js/ui.js",
   "js/player.js",
   "js/camera.js",
@@ -28,6 +29,7 @@ for (const file of jsFiles) {
 
 const index = await readFile(path.join(root, "index.html"), "utf8");
 const main = await readFile(path.join(root, "js/main.js"), "utf8");
+const tournament = await readFile(path.join(root, "js/tournament.js"), "utf8");
 const sky = await readFile(path.join(root, "js/sky_sprint.js"), "utf8");
 const state = await readFile(path.join(root, "js/game_state.js"), "utf8");
 const ui = await readFile(path.join(root, "js/ui.js"), "utf8");
@@ -50,6 +52,8 @@ for (const script of [
   assert(boot.includes(script), `Boot loader missing script: ${script}`);
 }
 
+assert(tournament.includes("POINTS=[10,7,5,3,2,1]"), "Tournament scoring table missing");
+assert(tournament.includes("addEventResult"), "Tournament event result handler missing");
 assert(main.includes("MGOGameState"), "Main loop is not using the game state machine");
 for (const eventState of ["SKY_COUNTDOWN","SKY_SPRINT","RACE_RESULTS","TARGET_MAYHEM","TARGET_RESULTS"]) {
   assert(state.includes(eventState), `Game state missing: ${eventState}`);
@@ -104,6 +108,10 @@ assert(main.includes("points:500"), "High-value purple target missing");
 assert(main.includes("spawnTarget(g,i)"), "Target respawn/spawn helper missing");
 assert(main.includes("targetScore+=pts"), "Colour-based target scoring missing");
 assert(main.includes("updateTargetCamera()"), "Target Mayhem camera helper missing");
+assert(main.includes("awardSkySprintTournament()"), "Sky Sprint tournament scoring missing");
+assert(main.includes("awardTargetTournament()"), "Target Mayhem tournament scoring missing");
+assert(main.includes("startNextTournamentEvent()"), "Tournament event progression missing");
+assert(main.includes("TOURNAMENT COMPLETE"), "Tournament completion screen missing");
 assert(main.includes("targetArenaPlayers"), "Target Mayhem participant list missing");
 assert(main.includes("Rivals are active participants too"), "Rivals must participate in Target Mayhem");
 
