@@ -1,0 +1,80 @@
+import { readFile } from "node:fs/promises";
+import { access } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import path from "node:path";
+import assert from "node:assert/strict";
+
+const root = process.cwd();
+const files = [
+  "index.html",
+  "js/game_state.js",
+  "js/main.js",
+  "js/ui.js",
+  "js/player.js",
+  "js/camera.js",
+  "js/world.js",
+  "js/sky_sprint.js"
+];
+
+for (const file of files) {
+  await access(path.join(root, file));
+}
+
+const jsFiles = files.filter(f => f.endsWith(".js"));
+for (const file of jsFiles) {
+  execFileSync(process.execPath, ["--check", path.join(root, file)], { stdio: "inherit" });
+}
+
+const index = await readFile(path.join(root, "index.html"), "utf8");
+const main = await readFile(path.join(root, "js/main.js"), "utf8");
+const sky = await readFile(path.join(root, "js/sky_sprint.js"), "utf8");
+const state = await readFile(path.join(root, "js/game_state.js"), "utf8");
+const ui = await readFile(path.join(root, "js/ui.js"), "utf8");
+
+assert(index.includes("three@0.160.0/build/three.min.js"), "Three.js CDN missing");
+for (const script of [
+  'js/player.js',
+  'js/camera.js',
+  'js/world.js',
+  'js/sky_sprint.js',
+  'js/ui.js',
+  'js/game_state.js',
+  'js/main.js'
+]) {
+  assert(index.includes(script), `Missing script: ${script}`);
+}
+
+assert(main.includes("MGOGameState"), "Main loop is not using the game state machine");
+assert(main.includes("SKY_COUNTDOWN"), "Sky countdown state missing");
+assert(main.includes("SKY_SPRINT"), "Sky Sprint state missing");
+assert(main.includes("RACE_RESULTS"), "Race results state missing");
+assert(main.includes("TARGET_MAYHEM"), "Target Mayhem state missing");
+assert(main.includes("TARGET_RESULTS"), "Target results state missing");
+assert(main.includes("setRaceVisible"), "Race HUD visibility helper missing");
+assert(!main.includes("race.active?.28"), "Known invalid camera expression still present");
+assert(!main.includes("skyCountdown===0"), "Fragile exact-zero countdown check still present");
+assert(ui.includes("if(!inRace&&!inTarget)"), "Hub timer must pause during mini-games");
+assert(sky.includes("userData={obstacle:true"), "Obstacles must be tagged explicitly");
+assert(sky.includes("o.userData.obstacle"), "Obstacle list must exclude coins and other objects");
+assert(state.includes("function create"), "State factory missing");
+
+const vm = await import("node:vm");
+const sandbox = { window: {}, globalThis: {}, console };
+sandbox.globalThis = sandbox.window;
+vm.runInNewContext(state, sandbox);
+const s = sandbox.window.MGOGameState.create("SKY_COUNTDOWN");
+assert.equal(s.state, "SKY_COUNTDOWN");
+s.tick(0.5);
+assert.equal(s.age, 0.5);
+s.set("SKY_SPRINT");
+assert.equal(s.state, "SKY_SPRINT");
+assert.equal(s.age, 0);
+s.tick(1);
+assert.equal(s.age, 1);
+assert.throws(() => s.set("NOT_A_STATE"), /Unknown game state/);
+
+console.log("✅ Mini Game Olympics smoke tests passed");
+console.log("✅ Syntax checks passed");
+console.log("✅ State-machine checks passed");
+console.log("✅ HUD/timer isolation checks passed");
+console.log("✅ Sky Sprint obstacle checks passed");
