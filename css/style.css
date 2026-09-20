@@ -44,3 +44,6 @@
 .race-hud{border-radius:20px}
 .race-hud b{font-size:13px}
 .race-hud small{letter-spacing:.25px}
+
+/* Polish pass 03 */
+#raceHud.target-mode{border-color:#f5c54266}
