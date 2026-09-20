@@ -69,6 +69,7 @@ index.html
 css/
   style.css
 js/
+  boot.js
   main.js
   player.js
   camera.js
