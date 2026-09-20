@@ -43,7 +43,7 @@ function createSkySprint(scene){
 }
 
 function startSkySprint(player,race){
-  race.active=true;race.finished=false;race.time=0;race.coins=0;race.boost=0;race.hitCount=0;race.startTime=performance.now();race.checkpoint=0;race.message='GO!';race.hitCooldown=0;race.playerFinished=false;race.rivalFinishTimes=[null,null,null,null,null];
+  race.active=true;race.finished=false;race.time=0;race.coinCount=0;race.boost=0;race.hitCount=0;race.startTime=performance.now();race.checkpoint=0;race.message='GO!';race.hitCooldown=0;race.playerFinished=false;race.rivalFinishTimes=[null,null,null,null,null];
   player.position.set(0,9.8,-110);
   race.rivals.forEach((r,i)=>{r.visible=true;r.position.set((i-2)*3,9.8,-110-Math.min(i,2)*1.5);r.userData.vy=0;r.userData.raceSpeed=7.4+i*.28;r.userData.racePhase=i*.9;r.userData.finished=false;});player.rotation.set(0,0,0);player.visible=true;
 }
@@ -76,7 +76,7 @@ function updateSkySprint(player,keys,dt,yaw,race,toast){
   if(race.checkpoint<race.segments.length-1 && player.position.z>race.segments[race.checkpoint+1]+3){race.checkpoint++;toast('CHECKPOINT '+race.checkpoint)}
   // Interactive boost pads and collectibles
   for(const pad of race.boosts){if(pad.userData.cool>0)pad.userData.cool-=dt;if(pad.userData.cool<=0&&Math.abs(player.position.x-pad.position.x)<4&&Math.abs(player.position.z-pad.position.z)<2&&Math.abs(player.position.y-pad.position.y)<2){pad.userData.cool=1.2;race.boost=2.2;toast('BOOST PAD! +SPEED')}}
-  for(const c of race.coins){if(!c.visible)continue;c.rotation.z+=dt*4;c.position.y=c.userData.baseY+Math.sin(performance.now()/250+c.userData.phase)*.35;if(player.position.distanceTo(c.position)<1.6){c.visible=false;race.coins++;toast('COIN +1')}}
+  for(const c of race.coins){if(!c.visible)continue;c.rotation.z+=dt*4;c.position.y=c.userData.baseY+Math.sin(performance.now()/250+c.userData.phase)*.35;if(player.position.distanceTo(c.position)<1.6){c.visible=false;race.coinCount++;toast('COIN +1')}}
   // Solid obstacle collision: push the player away and apply a short slowdown.
   race.hitCooldown=Math.max(0,(race.hitCooldown||0)-dt);
   for(const o of race.obstacles){
