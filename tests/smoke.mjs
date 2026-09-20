@@ -47,7 +47,7 @@ for (const script of [
   'js/game_state.js',
   'js/main.js'
 ]) {
-  assert(index.includes(script), `Missing script: ${script}`);
+  assert(boot.includes(script), `Boot loader missing script: ${script}`);
 }
 
 assert(main.includes("MGOGameState"), "Main loop is not using the game state machine");
