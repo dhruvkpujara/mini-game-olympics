@@ -55,7 +55,7 @@ for (const script of [
 assert(tournament.includes("POINTS=[10,7,5,3,2,1]"), "Tournament scoring table missing");
 assert(tournament.includes("addEventResult"), "Tournament event result handler missing");
 assert(main.includes("MGOGameState"), "Main loop is not using the game state machine");
-for (const eventState of ["SKY_COUNTDOWN","SKY_SPRINT","RACE_RESULTS","TARGET_MAYHEM","TARGET_RESULTS"]) {
+for (const eventState of ["SKY_COUNTDOWN","SKY_SPRINT","RACE_RESULTS","TARGET_MAYHEM","TARGET_RESULTS","PENALTY_KINGS","PENALTY_RESULTS"]) {
   assert(state.includes(eventState), `Game state missing: ${eventState}`);
 }
 assert(main.includes("setRaceVisible"), "Race HUD visibility helper missing");
@@ -138,3 +138,8 @@ assert(main.includes("targetArenaPlayers[0].score=targetScore"), "Target score m
 
 assert(main.includes("renderTargetLeaderboard()"), "Target Mayhem leaderboard renderer missing");
 assert(main.includes("if(gameState.state==='TARGET_RESULTS')"), "Target Mayhem results leaderboard state missing");
+
+assert(main.includes("MGOTournament.create(['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS'])"), "Tournament must contain three playable games");
+assert(main.includes("penaltyReady&&!penaltyCompleted&&penaltyShots===5"), "Penalty Kings results must require all five player shots");
+assert(main.includes("!penaltyReady||penaltyCompleted||penaltyShots>=5"), "Penalty Kings must ignore shots outside the active challenge");
+assert(main.includes("gameState.set('PENALTY_RESULTS')"), "Penalty Kings must enter results only after completion");
