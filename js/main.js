@@ -37,8 +37,8 @@ function spawnTarget(g,i){
 }
 // Rivals are active participants too.
 function setupTargetArenaPlayers(){
-  targetArenaPlayers=[{name:'YOU',score:0,hits:0,color:0x2458d6}];
-  race.rivals.forEach((r,i)=>targetArenaPlayers.push({name:['BOLT','NOVA','DASH','ROCKET','FLASH'][i],score:0,hits:0,color:[0xe74c3c,0x16a085,0x8e44ad,0xf39c12,0x34495e][i]}));
+  targetArenaPlayers=[{name:'YOU',score:0,hits:0,color:0x2458d6,skill:1}];
+  race.rivals.forEach((r,i)=>targetArenaPlayers.push({name:['BOLT','NOVA','DASH','ROCKET','FLASH'][i],score:0,hits:0,color:[0xe74c3c,0x16a085,0x8e44ad,0xf39c12,0x34495e][i],skill:[.76,.84,.9,.8,.87][i]}));
   race.rivals.forEach(r=>{r.visible=true;r.position.set((Math.random()*2-1)*14,.1,39+Math.random()*4);r.rotation.y=Math.PI});
 }
 function startTargetMayhem(){
@@ -53,7 +53,7 @@ function startTargetMayhem(){
   }
   showToast('TARGET MAYHEM! HIT COLOURED TARGETS!');
 }
-function updateTargetMayhem(dt){if(!secondGame)return;targetTime-=dt;targetFlash=Math.max(0,targetFlash-dt);for(const p of targetArenaPlayers.slice(1))p.score+=dt*18*(0.7+Math.random()*0.6);
+function updateTargetMayhem(dt){if(!secondGame)return;targetTime-=dt;targetFlash=Math.max(0,targetFlash-dt);for(const p of targetArenaPlayers.slice(1)){p.aiTimer=(p.aiTimer||0)-dt;if(p.aiTimer<=0){const skill=p.skill||.8;const hit=Math.random()<skill;if(hit){const values=[50,100,150,250,500],weights=[.28,.3,.22,.15,.05];let roll=Math.random(),pts=50;for(let j=0;j<weights.length;j++){if((roll-=weights[j])<=0){pts=values[j];break}}p.score+=pts;p.hits=(p.hits||0)+1}p.aiTimer=.48+Math.random()*.32}}
   for(const g of targets){const target=g.userData.targetMesh;if(g.userData.hit){g.userData.respawnTimer-=dt;if(g.userData.respawnTimer<=0)respawnTarget(g,g.userData.phase);continue}g.rotation.y+=dt*1.5;g.position.x=Math.max(-12,Math.min(12,g.position.x+Math.sin(elapsed*2+g.userData.phase)*dt*2));g.position.y=Math.sin(elapsed*1.8+g.userData.phase)*.25}if(targetTime<=0){targetTime=0;secondGame=false;awardTargetTournament();renderTargetResultsBoard();gameState.set('TARGET_RESULTS');targetResultTimer=0;showToast('TIME! SCORE '+targetScore);clearTargets();document.querySelector('#eventName').textContent='RESULTS';document.querySelector('#venue').innerHTML='<b>CHALLENGE ARENA</b><span>Target Mayhem complete · Score '+targetScore+'</span>';setTimeout(()=>{document.querySelector('#eventName').textContent='NEXT EVENT';document.querySelector('#venue').innerHTML='<b>OLYMPIC PLAZA</b><span>Ready for the next mini-game</span>'},1500)}}
 function shootTarget(e){
   if(!secondGame)return;
