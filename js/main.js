@@ -4,7 +4,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerW
 scene.add(new THREE.HemisphereLight(0xffffff,0x65815d,2.2));const sun=new THREE.DirectionalLight(0xffffff,3);sun.position.set(60,90,35);sun.castShadow=true;scene.add(sun);
 const world=createWorld(scene),race=createSkySprint(scene),player=createPlayer(scene);player.position.set(0,.1,22);
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>{keys[e.code]=false});addEventListener('blur',()=>{for(const k in keys)keys[k]=false});document.addEventListener('visibilitychange',()=>{if(document.hidden)for(const k in keys)keys[k]=false});
-let yaw=.25,pitch=.48,drag=false,lx=0,ly=0;let penaltyGoal=null,penaltyKeeper=null,penaltyKeeperT=0,penaltyBall=null,penaltyShot=null;renderer.domElement.onmousedown=e=>{drag=true;lx=e.clientX;ly=e.clientY};addEventListener('mouseup',()=>drag=false);addEventListener('mousemove',e=>{if(!drag)return;yaw-=(e.clientX-lx)*.006;pitch=Math.max(.2,Math.min(1.05,pitch-(e.clientY-ly)*.004));lx=e.clientX;ly=e.clientY});
+let yaw=.25,pitch=.48,drag=false,lx=0,ly=0;let penaltyGoal=null,penaltyKeeper=null,penaltyKeeperT=0,penaltyBall=null,penaltyShot=null,penaltyAimPlane=null,penaltyAimMarker=null,penaltyAimZones=[];renderer.domElement.onmousedown=e=>{drag=true;lx=e.clientX;ly=e.clientY};addEventListener('mouseup',()=>drag=false);addEventListener('mousemove',e=>{if(!drag)return;yaw-=(e.clientX-lx)*.006;pitch=Math.max(.2,Math.min(1.05,pitch-(e.clientY-ly)*.004));lx=e.clientX;ly=e.clientY});
 let skyCountdown=5,returnTimer=0,resultHoldSeconds=7,elapsed=0,secondGame=false,targetTime=30,targetScore=0,targetHits=0,targetResultTimer=0,targetFlash=0,penaltyShots=0,penaltyGoals=0,penaltyTime=0,penaltyResultTimer=0,penaltyReady=false,penaltyCompleted=false,targets=[],targetMeshes=[],targetRay=new THREE.Raycaster(),mouse=new THREE.Vector2(),clock=new THREE.Clock();
 const tournament=MGOTournament.create(['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS']);
 tournament.start();
@@ -13,17 +13,48 @@ function renderTournamentBoard(title,rows){const b=document.querySelector('#race
 function awardSkySprintTournament(){const rows=skySprintLeaderboard(race).map(x=>({name:x.name,score:x.time,finished:x.finished}));rows.sort((a,b)=>a.score-b.score);tournament.addEventResult(rows);renderTournamentBoard('EVENT POINTS',Object.values(tournament.standings).sort((a,b)=>b.points-a.points))}
 function awardTargetTournament(){const you=targetArenaPlayers.find(x=>x.name==='YOU');if(you){you.score=targetScore;you.hits=targetHits}const rows=targetArenaPlayers.map(x=>({name:x.name,score:x.score})).sort((a,b)=>b.score-a.score);tournament.addEventResult(rows);renderTournamentBoard('TOURNAMENT STANDINGS',Object.values(tournament.standings).sort((a,b)=>b.points-a.points))}
 function renderFinalPodiumBoard(){const rows=Object.values(tournament.standings).sort((a,b)=>b.points-a.points||((b.events?.reduce((s,e)=>s+e.points,0)||0)-(a.events?.reduce((s,e)=>s+e.points,0)||0)));const b=document.querySelector('#finalPodium');if(!b)return;b.style.display='block';b.innerHTML='<b>🏆 FINAL PODIUM · COMBINED SCORE</b>'+rows.slice(0,3).map((x,i)=>{const medals=['🥇','🥈','🥉'];const g1=x.events?.find(e=>e.event==='SKY SPRINT')?.points||0;const g2=x.events?.find(e=>e.event==='TARGET MAYHEM')?.points||0;const g3=x.events?.find(e=>e.event==='PENALTY KINGS')?.points||0;return '<div class="podium-row '+(x.name==='YOU'?'you':'')+'"><span>'+medals[i]+' '+x.name+'</span><span>G1 '+g1+' + G2 '+g2+' + G3 '+g3+' = <b>'+x.points+'</b></span></div>'}).join('')+'<div class="podium-total">TOP 3 · COMBINED RESULTS FROM ALL 3 GAMES</div>';const raceBoard=document.querySelector('#raceBoard');if(raceBoard)raceBoard.style.display='none'}
-function startPenaltyKings(){secondGame=false;penaltyShots=0;penaltyGoals=0;penaltyTime=0;penaltyResultTimer=0;penaltyReady=true;penaltyCompleted=false;penaltyKeeperT=0;penaltyShot=null;document.querySelector('#eventName').textContent='PENALTY KINGS';document.querySelector('#venue').innerHTML='<b>FOOTBALL ARENA</b><span>5 shots · beat the AI goalkeeper</span>';setRaceVisible(true);buildPenaltyArena();player.position.set(0,.1,42);player.rotation.y=Math.PI;showToast('PENALTY KINGS! AIM FOR THE GOAL!');gameState.set('PENALTY_KINGS')}
+function startPenaltyKings(){secondGame=false;penaltyShots=0;penaltyGoals=0;penaltyTime=0;penaltyResultTimer=0;penaltyReady=true;penaltyCompleted=false;penaltyKeeperT=0;penaltyShot=null;if(penaltyAimMarker)penaltyAimMarker.visible=false;document.querySelector('#eventName').textContent='PENALTY KINGS';document.querySelector('#venue').innerHTML='<b>FOOTBALL ARENA</b><span>5 shots · beat the AI goalkeeper</span>';setRaceVisible(true);buildPenaltyArena();player.position.set(0,.1,42);player.rotation.y=Math.PI;showToast('PENALTY KINGS! AIM FOR THE GOAL!');gameState.set('PENALTY_KINGS')}
 function buildPenaltyArena(){
   if(penaltyGoal){scene.remove(penaltyGoal);penaltyGoal=null}
   if(penaltyKeeper){scene.remove(penaltyKeeper);penaltyKeeper=null}
   if(penaltyBall){scene.remove(penaltyBall);penaltyBall=null}
+  if(penaltyAimPlane){scene.remove(penaltyAimPlane);penaltyAimPlane=null}
+  if(penaltyAimMarker){scene.remove(penaltyAimMarker);penaltyAimMarker=null}
+  penaltyAimZones.forEach(z=>scene.remove(z));penaltyAimZones=[];
   const group=new THREE.Group();
   const mat=new THREE.MeshStandardMaterial({color:0xffffff});
   const post=new THREE.Mesh(new THREE.BoxGeometry(.28,5,.28),mat),post2=post.clone(),bar=new THREE.Mesh(new THREE.BoxGeometry(12,.28,.28),mat);
   post.position.set(-6,2.5,30);post2.position.set(6,2.5,30);bar.position.set(0,5,30);
   const net=new THREE.Mesh(new THREE.PlaneGeometry(12,5),new THREE.MeshBasicMaterial({color:0x8fb3c9,transparent:true,opacity:.16,side:THREE.DoubleSide}));net.position.set(0,2.5,30.3);
   group.add(post,post2,bar,net);scene.add(group);penaltyGoal=group;
+
+  // Invisible goal plane: clicks are converted into a real 3D point on the goal.
+  penaltyAimPlane=new THREE.Mesh(
+    new THREE.PlaneGeometry(12,5),
+    new THREE.MeshBasicMaterial({transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false})
+  );
+  penaltyAimPlane.position.set(0,2.5,30.05);
+  scene.add(penaltyAimPlane);
+
+  // 3x3 visual aim zones make it obvious where the player is choosing to shoot.
+  const zoneMat=new THREE.MeshBasicMaterial({color:0x38bdf8,transparent:true,opacity:.08,side:THREE.DoubleSide,depthWrite:false});
+  for(let row=0;row<3;row++){
+    for(let col=0;col<3;col++){
+      const zone=new THREE.Mesh(new THREE.PlaneGeometry(3.9,1.55),zoneMat.clone());
+      zone.position.set(-4+col*4,1.25+row*1.65,29.98);
+      zone.userData={row,col};
+      penaltyGoal.add(zone);penaltyAimZones.push(zone);
+    }
+  }
+
+  penaltyAimMarker=new THREE.Mesh(
+    new THREE.RingGeometry(.22,.34,24),
+    new THREE.MeshBasicMaterial({color:0xffd43b,transparent:true,opacity:.95,side:THREE.DoubleSide,depthWrite:false})
+  );
+  penaltyAimMarker.rotation.x=Math.PI/2;
+  penaltyAimMarker.visible=false;
+  scene.add(penaltyAimMarker);
+
   penaltyBall=new THREE.Mesh(new THREE.SphereGeometry(.34,16,12),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.55}));penaltyBall.position.set(0,.45,39.8);scene.add(penaltyBall);
   const k=new THREE.Group();
   const body=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.7,.55),new THREE.MeshStandardMaterial({color:0xff8a3d}));
@@ -32,8 +63,33 @@ function buildPenaltyArena(){
   body.position.y=1.4;head.position.y=2.65;armL.position.set(-.75,1.55,0);armR.position.set(.75,1.55,0);
   k.add(body,head,armL,armR);k.position.set(0,0,29.35);scene.add(k);penaltyKeeper=k;
 }
-function updatePenaltyKeeper(dt){if(!penaltyKeeper)return;penaltyKeeperT+=dt;penaltyKeeper.position.x=Math.sin(penaltyKeeperT*2.7)*4.1;}
-function updatePenaltyShot(dt){if(!penaltyShot||!penaltyBall)return;penaltyShot.t=Math.min(1,penaltyShot.t+dt/.72);const p=penaltyShot.t;const ease=1-Math.pow(1-p,2);penaltyBall.position.lerpVectors(penaltyShot.start,penaltyShot.end,ease);penaltyBall.position.y+=Math.sin(p*Math.PI)*penaltyShot.arc;if(p>=1){penaltyShot=null;penaltyBall.position.set(0,.45,39.8);}}
+function updatePenaltyKeeper(dt){
+  if(!penaltyKeeper)return;
+  penaltyKeeperT+=dt;
+  // The AI patrols the goal, then reacts to the selected target during the shot.
+  const patrol=Math.sin(penaltyKeeperT*2.7)*3.4;
+  if(penaltyShot&&penaltyShot.keeperTargetX!==undefined){
+    const reaction=Math.min(1,penaltyShot.t*2.2);
+    penaltyKeeper.position.x=THREE.MathUtils.lerp(patrol,penaltyShot.keeperTargetX,reaction);
+    penaltyKeeper.rotation.z=Math.sin(reaction*Math.PI)*.12*(penaltyShot.keeperTargetX>=0? -1:1);
+  }else{
+    penaltyKeeper.position.x=patrol;
+    penaltyKeeper.rotation.z=0;
+  }
+}
+function updatePenaltyShot(dt){
+  if(!penaltyShot||!penaltyBall)return;
+  penaltyShot.t=Math.min(1,penaltyShot.t+dt/.72);
+  const p=penaltyShot.t;
+  const ease=1-Math.pow(1-p,2);
+  penaltyBall.position.lerpVectors(penaltyShot.start,penaltyShot.end,ease);
+  penaltyBall.position.y+=Math.sin(p*Math.PI)*penaltyShot.arc;
+  if(p>=1){
+    penaltyShot=null;
+    penaltyBall.position.set(0,.45,39.8);
+    if(penaltyAimMarker)penaltyAimMarker.visible=false;
+  }
+}
 function updatePenaltyKings(dt){
   penaltyTime+=dt;updatePenaltyKeeper(dt);updatePenaltyShot(dt);
   const b=document.querySelector('#raceBoard');
@@ -42,7 +98,7 @@ function updatePenaltyKings(dt){
     b.innerHTML='<b>PENALTY KINGS</b>'+
       '<div class="race-row"><span>SHOTS</span><span>'+penaltyShots+' / 5</span></div>'+
       '<div class="race-row"><span>GOALS</span><span>'+penaltyGoals+'</span></div>'+
-      '<div class="race-row"><span>AIM</span><span>CLICK TO SHOOT</span></div>';
+      '<div class="race-row"><span>AIM</span><span>CLICK ANYWHERE ON GOAL</span></div>';
   }
   if(penaltyReady&&!penaltyCompleted&&penaltyShots===5){
     penaltyResultTimer+=dt;
@@ -65,7 +121,51 @@ function updatePenaltyKings(dt){
     }
   }
 }
-function shootPenalty(e){if(gameState.state!=='PENALTY_KINGS'||!penaltyReady||penaltyCompleted||penaltyShots>=5||penaltyShot)return;penaltyShots++;const r=renderer.domElement.getBoundingClientRect();const x=((e.clientX-r.left)/r.width)*2-1;const y=-((e.clientY-r.top)/r.height)*2+1;const targetX=x*6,targetY=2.5+y*2.5;const keeperX=penaltyKeeper?penaltyKeeper.position.x:0;const aimQuality=Math.max(0,1-Math.hypot(targetX-keeperX,targetY-2.2)/7);const cornerBonus=Math.min(1,Math.abs(targetX)/6+.25);const goalChance=Math.max(.08,.72-cornerBonus*.28-aimQuality*.42+Math.random()*.16);const end=new THREE.Vector3(targetX,targetY,30);penaltyShot={t:0,start:penaltyBall.position.clone(),end,arc:Math.min(2.2,.55+Math.abs(targetX)*.12)};if(Math.abs(targetX)<=6&&targetY>=0&&targetY<=5&&goalChance>.42){penaltyGoals++;showToast('GOAL! ⚽')}else showToast('SAVED! 🧤 GK READ YOUR SHOT!')}
+function shootPenalty(e){
+  if(gameState.state!=='PENALTY_KINGS'||!penaltyReady||penaltyCompleted||penaltyShots>=5||penaltyShot)return;
+  const r=renderer.domElement.getBoundingClientRect();
+  mouse.x=((e.clientX-r.left)/r.width)*2-1;
+  mouse.y=-((e.clientY-r.top)/r.height)*2+1;
+  targetRay.setFromCamera(mouse,camera);
+  const hit=targetRay.intersectObject(penaltyAimPlane,false)[0];
+  if(!hit)return;
+
+  // The click becomes the exact 3D point the ball is sent toward.
+  const target=hit.point.clone();
+  target.x=THREE.MathUtils.clamp(target.x,-5.85,5.85);
+  target.y=THREE.MathUtils.clamp(target.y,.15,4.85);
+  target.z=30;
+  penaltyShots++;
+
+  const keeperX=penaltyKeeper?penaltyKeeper.position.x:0;
+  const distanceToKeeper=Math.hypot(target.x-keeperX,target.y-2.2);
+  const cornerSafety=Math.min(1,Math.abs(target.x)/5.85);
+  const heightSafety=Math.min(1,Math.abs(target.y-2.5)/2.35);
+  const saveChance=Math.max(.12,.78-distanceToKeeper*.075-cornerSafety*.22-heightSafety*.18);
+  const saved=Math.random()<saveChance;
+
+  if(penaltyAimMarker){
+    penaltyAimMarker.position.copy(target);
+    penaltyAimMarker.position.z=29.82;
+    penaltyAimMarker.visible=true;
+  }
+
+  const end=new THREE.Vector3(target.x,target.y,30);
+  penaltyShot={
+    t:0,
+    start:penaltyBall.position.clone(),
+    end,
+    arc:Math.min(2.4,.5+Math.abs(target.x)*.13),
+    keeperTargetX:target.x
+  };
+
+  if(!saved){
+    penaltyGoals++;
+    showToast('GOAL! ⚽ EXACT TARGET HIT!');
+  }else{
+    showToast('SAVED! 🧤 THE GK READ YOUR AIM!');
+  }
+}
 renderer.domElement.addEventListener('click',shootPenalty);
 function startNextTournamentEvent(){if(tournament.complete){gameState.set('HUB');document.querySelector('#eventName').textContent='TOURNAMENT COMPLETE';document.querySelector('#venue').innerHTML='<b>OLYMPIC PODIUM</b><span>Final standings across all completed games</span>';setRaceVisible(true);renderFinalPodiumBoard();return}document.querySelector('#raceBoard').style.display='none';if(tournament.current==='PENALTY KINGS'){startPenaltyKings();return}document.querySelector('#eventName').textContent=tournament.current;document.querySelector('#venue').innerHTML='<b>OLYMPIC PLAZA</b><span>Round '+tournament.round+' / '+tournament.totalRounds+'</span>';skyCountdown=3;gameState.set('SKY_COUNTDOWN')}
 function setRaceVisible(v){const h=document.querySelector('#raceHud');if(h)h.style.display=v?'block':'none'}
