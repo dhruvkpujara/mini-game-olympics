@@ -5,7 +5,7 @@ scene.add(new THREE.HemisphereLight(0xffffff,0x65815d,2.2));const sun=new THREE.
 const world=createWorld(scene),race=createSkySprint(scene),player=createPlayer(scene);player.position.set(0,.1,22);
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>{keys[e.code]=false});addEventListener('blur',()=>{for(const k in keys)keys[k]=false});document.addEventListener('visibilitychange',()=>{if(document.hidden)for(const k in keys)keys[k]=false});
 let yaw=.25,pitch=.48,drag=false,lx=0,ly=0;renderer.domElement.onmousedown=e=>{drag=true;lx=e.clientX;ly=e.clientY};addEventListener('mouseup',()=>drag=false);addEventListener('mousemove',e=>{if(!drag)return;yaw-=(e.clientX-lx)*.006;pitch=Math.max(.2,Math.min(1.05,pitch-(e.clientY-ly)*.004));lx=e.clientX;ly=e.clientY});
-let skyCountdown=5,returnTimer=0,resultHoldSeconds=7,elapsed=0,secondGame=false,targetTime=30,targetScore=0,targetHits=0,targetResultTimer=0,targetFlash=0,penaltyShots=0,penaltyGoals=0,penaltyTime=0,penaltyResultTimer=0,targets=[],targetMeshes=[],targetRay=new THREE.Raycaster(),mouse=new THREE.Vector2(),clock=new THREE.Clock();
+let skyCountdown=5,returnTimer=0,resultHoldSeconds=7,elapsed=0,secondGame=false,targetTime=30,targetScore=0,targetHits=0,targetResultTimer=0,targetFlash=0,penaltyShots=0,penaltyGoals=0,penaltyTime=0,penaltyResultTimer=0,penaltyReady=false,penaltyCompleted=false,targets=[],targetMeshes=[],targetRay=new THREE.Raycaster(),mouse=new THREE.Vector2(),clock=new THREE.Clock();
 const tournament=MGOTournament.create(['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS']);
 tournament.start();
 const gameState=MGOGameState.create('SKY_COUNTDOWN');
@@ -13,7 +13,7 @@ function renderTournamentBoard(title,rows){const b=document.querySelector('#race
 function awardSkySprintTournament(){const rows=skySprintLeaderboard(race).map(x=>({name:x.name,score:x.time,finished:x.finished}));rows.sort((a,b)=>a.score-b.score);tournament.addEventResult(rows);renderTournamentBoard('EVENT POINTS',Object.values(tournament.standings).sort((a,b)=>b.points-a.points))}
 function awardTargetTournament(){const you=targetArenaPlayers.find(x=>x.name==='YOU');if(you){you.score=targetScore;you.hits=targetHits}const rows=targetArenaPlayers.map(x=>({name:x.name,score:x.score})).sort((a,b)=>b.score-a.score);tournament.addEventResult(rows);renderTournamentBoard('TOURNAMENT STANDINGS',Object.values(tournament.standings).sort((a,b)=>b.points-a.points))}
 function renderFinalPodiumBoard(){const rows=Object.values(tournament.standings).sort((a,b)=>b.points-a.points||((b.events?.reduce((s,e)=>s+e.points,0)||0)-(a.events?.reduce((s,e)=>s+e.points,0)||0)));const b=document.querySelector('#finalPodium');if(!b)return;b.style.display='block';b.innerHTML='<b>🏆 FINAL PODIUM · COMBINED SCORE</b>'+rows.slice(0,3).map((x,i)=>{const medals=['🥇','🥈','🥉'];const g1=x.events?.find(e=>e.event==='SKY SPRINT')?.points||0;const g2=x.events?.find(e=>e.event==='TARGET MAYHEM')?.points||0;const g3=x.events?.find(e=>e.event==='PENALTY KINGS')?.points||0;return '<div class="podium-row '+(x.name==='YOU'?'you':'')+'"><span>'+medals[i]+' '+x.name+'</span><span>G1 '+g1+' + G2 '+g2+' + G3 '+g3+' = <b>'+x.points+'</b></span></div>'}).join('')+'<div class="podium-total">TOP 3 · COMBINED RESULTS FROM ALL 3 GAMES</div>';const raceBoard=document.querySelector('#raceBoard');if(raceBoard)raceBoard.style.display='none'}
-function startPenaltyKings(){secondGame=false;penaltyShots=0;penaltyGoals=0;penaltyTime=0;penaltyResultTimer=0;document.querySelector('#eventName').textContent='PENALTY KINGS';document.querySelector('#venue').innerHTML='<b>FOOTBALL ARENA</b><span>5 shots · beat the goalkeeper</span>';setRaceVisible(true);showToast('PENALTY KINGS! 5 SHOTS!');gameState.set('PENALTY_KINGS')}
+function startPenaltyKings(){secondGame=false;penaltyShots=0;penaltyGoals=0;penaltyTime=0;penaltyResultTimer=0;penaltyReady=true;penaltyCompleted=false;document.querySelector('#eventName').textContent='PENALTY KINGS';document.querySelector('#venue').innerHTML='<b>FOOTBALL ARENA</b><span>5 shots · beat the goalkeeper</span>';setRaceVisible(true);showToast('PENALTY KINGS! 5 SHOTS!');gameState.set('PENALTY_KINGS')}
 function updatePenaltyKings(dt){
   penaltyTime+=dt;
   const b=document.querySelector('#raceBoard');
@@ -24,7 +24,7 @@ function updatePenaltyKings(dt){
       '<div class="race-row"><span>GOALS</span><span>'+penaltyGoals+'</span></div>'+
       '<div class="race-row"><span>AIM</span><span>CLICK TO SHOOT</span></div>';
   }
-  if(penaltyShots>=5){
+  if(penaltyReady&&!penaltyCompleted&&penaltyShots===5){
     penaltyResultTimer+=dt;
     if(penaltyResultTimer>2){
       const rows=[
@@ -36,6 +36,8 @@ function updatePenaltyKings(dt){
         {name:'FLASH',score:4}
       ].sort((a,b)=>b.score-a.score);
       tournament.addEventResult(rows);
+      penaltyReady=false;
+      penaltyCompleted=true;
       gameState.set('PENALTY_RESULTS');
       penaltyResultTimer=0;
       document.querySelector('#eventName').textContent='PENALTY KINGS RESULTS';
@@ -43,7 +45,7 @@ function updatePenaltyKings(dt){
     }
   }
 }
-function shootPenalty(e){if(gameState.state!=='PENALTY_KINGS'||penaltyShots>=5)return;penaltyShots++;const x=(e.clientX/innerWidth)*2-1;const chance=.58-Math.abs(x)*.22+Math.random()*.22;if(chance>.4){penaltyGoals++;showToast('GOAL! ⚽')}else showToast('SAVED! 🧤')}
+function shootPenalty(e){if(gameState.state!=='PENALTY_KINGS'||!penaltyReady||penaltyCompleted||penaltyShots>=5)return;penaltyShots++;const x=(e.clientX/innerWidth)*2-1;const chance=.58-Math.abs(x)*.22+Math.random()*.22;if(chance>.4){penaltyGoals++;showToast('GOAL! ⚽')}else showToast('SAVED! 🧤')}
 renderer.domElement.addEventListener('click',shootPenalty);
 function startNextTournamentEvent(){if(tournament.complete){gameState.set('HUB');document.querySelector('#eventName').textContent='TOURNAMENT COMPLETE';document.querySelector('#venue').innerHTML='<b>OLYMPIC PODIUM</b><span>Final standings across all completed games</span>';setRaceVisible(true);renderFinalPodiumBoard();return}document.querySelector('#raceBoard').style.display='none';if(tournament.current==='PENALTY KINGS'){startPenaltyKings();return}document.querySelector('#eventName').textContent=tournament.current;document.querySelector('#venue').innerHTML='<b>OLYMPIC PLAZA</b><span>Round '+tournament.round+' / '+tournament.totalRounds+'</span>';skyCountdown=3;gameState.set('SKY_COUNTDOWN')}
 function setRaceVisible(v){const h=document.querySelector('#raceHud');if(h)h.style.display=v?'block':'none'}
