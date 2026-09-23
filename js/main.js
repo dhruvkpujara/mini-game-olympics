@@ -149,6 +149,7 @@ function loop(){
       gameState.state==='TARGET_MAYHEM'||gameState.state==='TARGET_RESULTS'
     );
     updateRaceHUD();
+    if(tournament.complete&&gameState.state==='HUB'){setRaceVisible(true);renderFinalPodiumBoard();}
     renderer.render(scene,camera);
     window.MGO_DEBUG.lastFrame=performance.now();
     window.MGO_DEBUG.lastError=null;
