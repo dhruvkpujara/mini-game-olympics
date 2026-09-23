@@ -143,3 +143,9 @@ assert(main.includes("MGOTournament.create(['SKY SPRINT','TARGET MAYHEM','PENALT
 assert(main.includes("penaltyReady&&!penaltyCompleted&&penaltyShots===5"), "Penalty Kings results must require all five player shots");
 assert(main.includes("!penaltyReady||penaltyCompleted||penaltyShots>=5"), "Penalty Kings must ignore shots outside the active challenge");
 assert(main.includes("gameState.set('PENALTY_RESULTS')"), "Penalty Kings must enter results only after completion");
+
+assert(main.includes("function buildPenaltyArena()"), "Penalty Kings goalpost arena missing");
+assert(main.includes("function updatePenaltyKeeper(dt)"), "Penalty Kings goalkeeper AI missing");
+assert(main.includes("penaltyKeeper.position.x=Math.sin"), "Goalkeeper must move dynamically");
+assert(main.includes("GK READ YOUR SHOT"), "Goalkeeper save feedback missing");
+assert(main.includes("const keeperX=penaltyKeeper?penaltyKeeper.position.x:0"), "Penalty shot must account for goalkeeper position");
