@@ -1,13 +1,13 @@
 const EVENTS=['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS','MEMORY MAYHEM','TOWER BALANCE'];let ei=0,et=12,tt=0;
 function showToast(s){const e=document.querySelector('#toast');e.textContent=s;e.style.opacity=1;tt=1}
-function updateUI(p,dt,inRace=false,inTarget=false){
-  if(!inRace&&!inTarget){
+function updateUI(p,dt,inRace=false,inTarget=false,inPenalty=false){
+  if(!inRace&&!inTarget&&!inPenalty){
     et-=dt;
     if(et<=0){ei=(ei+1)%EVENTS.length;et=12;showToast('EVENT READY: '+EVENTS[ei])}
     document.querySelector('#eventName').textContent=EVENTS[ei];
     document.querySelector('#timer').textContent=Math.ceil(et);
   }else{
-    document.querySelector('#timer').textContent=inTarget?'TARGET':'RACE';
+    document.querySelector('#timer').textContent=inPenalty?'PENALTY':(inTarget?'TARGET':'RACE');
   }
   const x=p.position.x,z=p.position.z;
   let v='Olympic Plaza';
