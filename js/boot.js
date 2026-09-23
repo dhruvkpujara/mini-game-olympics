@@ -37,7 +37,7 @@
     ['js/ui.js?v=5','Loading interface...'],
     ['js/game_state.js?v=3','Loading game state...'],
     ['js/tournament.js?v=1','Loading tournament system...'],
-    ['js/main.js?v=24','Starting 3D engine...']
+    ['js/main.js?v=25','Starting 3D engine...']
   ];
 
   async function start(){
