@@ -128,7 +128,7 @@ function loop(){
         targetResultTimer+=dt;
         if(targetResultTimer>resultHoldSeconds){
           targetResultTimer=0;
-          startNextTournamentEvent();
+          if(tournament.current==='PENALTY KINGS'){startPenaltyKings();}else{startNextTournamentEvent();}
         }
         break;
 
