@@ -125,7 +125,7 @@ assert(main.includes("allRivalsFinished&&returnTimer>resultHoldSeconds"), "Sky S
 assert(main.includes("if(targetResultTimer>resultHoldSeconds)"), "Target Mayhem must respect results hold time");
 assert(main.includes("you.score=targetScore"), "Player Target Mayhem score must feed tournament points");
 assert(main.includes("const target=g.userData.targetMesh;if(g.userData.hit){"), "Target respawn timer must track the hit target mesh");
-assert(main.includes("target.visible=false;g.userData.respawnTimer=.65"), "Hit targets must schedule a respawn without hiding the whole target group");
+assert(main.includes("target.visible=false;g.userData.hit=true;g.userData.respawnTimer=.65"), "Hit targets must schedule a respawn without hiding the whole target group");
 assert(!main.includes("target.visible=false;g.visible=false"), "Target group must remain active while its face respawns");
 
 assert(main.includes("TOURNAMENT STANDINGS"), "Tournament leaderboard must be rendered during results");
