@@ -37,8 +37,8 @@ function createSkySprint(scene){
   // Rival athletes use the exact same character model as the player.
   const rivals=[];
   const rivalColors=[0xe74c3c,0x16a085,0x8e44ad,0xf39c12,0x34495e];
-  const rivalCharacterIds=['duck','bheem','raju','ninja','sonic'];
-  for(let i=0;i<5;i++){
+  const rivalCharacterIds=['duck','bheem','raju','ninja','sonic','panda','robot'];
+  for(let i=0;i<7;i++){
     const rival=createPlayer(scene,rivalCharacterIds[i]);
     rival.userData.rival=true;
     rival.visible=false;
@@ -51,7 +51,7 @@ function createSkySprint(scene){
 }
 
 function startSkySprint(player,race){
-  race.active=true;race.finished=false;race.time=0;race.coinCount=0;race.boost=0;race.hitCount=0;race.startTime=performance.now();race.checkpoint=0;race.lastSafePlatform=0;race.message='GO!';race.hitCooldown=0;race.playerFinished=false;race.rivalFinishTimes=[null,null,null,null,null];
+  race.active=true;race.finished=false;race.time=0;race.coinCount=0;race.boost=0;race.hitCount=0;race.startTime=performance.now();race.checkpoint=0;race.lastSafePlatform=0;race.message='GO!';race.hitCooldown=0;race.playerFinished=false;race.rivalFinishTimes=[null,null,null,null,null,null,null];
   player.position.set(0,9.8,-110);
   race.rivals.forEach((r,i)=>{r.visible=true;r.position.set((i-2)*3,9.8,-110-Math.min(i,2)*1.5);r.userData.vy=0;r.userData.raceSpeed=7.4+i*.28;r.userData.racePhase=i*.9;r.userData.finished=false;});player.rotation.set(0,0,0);player.visible=true;
 }
@@ -134,7 +134,7 @@ function updateSkySprint(player,keys,dt,yaw,race,toast){
 
 function skySprintLeaderboard(race){
   const rows=[{name:'YOU',time:race.playerFinishTime??Infinity,finished:race.playerFinished}];
-  const names=['Bolt','Nova','Dash','Rocket','Flash'];
+  const names=['Bolt','Nova','Dash','Rocket','Flash','Panda','Mecha'];
   race.rivalFinishTimes.forEach((t,i)=>rows.push({name:names[i],time:t??Infinity,finished:t!==null}));
   return rows.sort((a,b)=>a.time-b.time);
 }
