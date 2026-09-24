@@ -56,3 +56,17 @@ body.penalty-mode #controls{background:#071b12e8;border-color:#4ade8066}
 /* Global cinematic upgrade */
 .hud{font-family:Inter,Arial,sans-serif}.top,.pill,.race-hud,.race-board{backdrop-filter:blur(14px) saturate(135%)}
 #game canvas{filter:saturate(1.08) contrast(1.03)}
+
+.selected-character{position:absolute;left:20px;top:145px;background:#0d1d2dcc;border:1px solid #ffffff29;border-radius:999px;padding:8px 12px;font-size:11px;backdrop-filter:blur(8px)}
+.character-select{position:fixed;inset:0;z-index:7000;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,#173f68cc,#050b12ee 72%);backdrop-filter:blur(8px);pointer-events:auto}
+.character-select-card{width:min(760px,calc(100vw - 28px));padding:26px;border:1px solid #ffffff2b;border-radius:26px;background:#081522f2;box-shadow:0 30px 100px #000b;color:#fff;text-align:center}
+.character-select-kicker{font-size:10px;letter-spacing:3px;color:#8fe8ff;font-weight:900}
+.character-select-card h2{margin:8px 0 4px;font-size:30px}.character-select-card p{margin:0 0 18px;color:#9fb4c4;font-size:12px}
+.character-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.character-card{border:1px solid #ffffff1f;border-radius:16px;background:#ffffff08;color:#fff;padding:12px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:.16s}
+.character-card:hover{transform:translateY(-3px);background:#ffffff12}.character-card.selected{border-color:#f5c542;box-shadow:0 0 0 2px #f5c54244,inset 0 0 25px #f5c54210}
+.character-card b{font-size:13px}.character-card small{font-size:9px;color:#91a8b8}
+.avatar{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-weight:1000;font-size:15px;border:3px solid #fff5;box-shadow:0 7px 20px #0005}
+.avatar-mario{background:#e53935}.avatar-duck{background:#f8fafc;color:#17324d}.avatar-bheem{background:#f59e0b}.avatar-raju{background:#dc2626}.avatar-ninja{background:#334155}.avatar-sonic{background:#1769e0}
+.confirm-character{margin-top:18px;width:100%;padding:13px;border:0;border-radius:13px;background:#f5c542;color:#111827;font-weight:1000;cursor:pointer}
+@media(max-width:700px){.character-grid{grid-template-columns:repeat(2,1fr)}.character-select-card{padding:18px}.selected-character{left:12px;top:128px}}
