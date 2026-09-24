@@ -1,6 +1,7 @@
 function createSkySprint(scene){
   const root=new THREE.Group();root.name='SkySprint';
-  const mat={boost:new THREE.MeshStandardMaterial({color:0x38d9ff,emissive:0x0b6b88,emissiveIntensity:1.2}),coin:new THREE.MeshStandardMaterial({color:0xffd43b,emissive:0x8a6500,emissiveIntensity:.7}),platform:new THREE.MeshStandardMaterial({color:0x4b7bec}),edge:new THREE.MeshStandardMaterial({color:0xf5c542}),white:new THREE.MeshStandardMaterial({color:0xffffff}),gold:new THREE.MeshStandardMaterial({color:0xf5c542}),red:new THREE.MeshStandardMaterial({color:0xe74c3c}),dark:new THREE.MeshStandardMaterial({color:0x182432}),green:new THREE.MeshStandardMaterial({color:0x43c46b})};
+  const skyGlow=new THREE.PointLight(0x4fdcff,2.5,70);skyGlow.position.set(0,18,-50);root.add(skyGlow);
+  const mat={boost:new THREE.MeshStandardMaterial({color:0x38d9ff,emissive:0x0b6b88,emissiveIntensity:1.2}),coin:new THREE.MeshStandardMaterial({color:0xffd43b,emissive:0x8a6500,emissiveIntensity:.7}),platform:new THREE.MeshStandardMaterial({color:0x3156b8,roughness:.45,metalness:.18}),edge:new THREE.MeshStandardMaterial({color:0xf5c542,emissive:0x5b3d00,emissiveIntensity:.3}),white:new THREE.MeshStandardMaterial({color:0xffffff}),gold:new THREE.MeshStandardMaterial({color:0xf5c542}),red:new THREE.MeshStandardMaterial({color:0xe74c3c}),dark:new THREE.MeshStandardMaterial({color:0x182432}),green:new THREE.MeshStandardMaterial({color:0x43c46b})};
   function box(w,h,d,x,y,z,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;root.add(o);return o}
   // Floating race path above the stadium: start -> finish along +Z.
   const segments=[-110,-94,-78,-62,-46,-30,-14,2,18];
