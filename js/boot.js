@@ -30,14 +30,14 @@
   };
 
   const localFiles=[
-    ['js/player.js?v=10','Loading player...'],
+    ['js/player.js?v=11','Loading player...'],
     ['js/camera.js?v=3','Loading camera...'],
     ['js/world.js?v=3','Loading Olympic Village...'],
     ['js/sky_sprint.js?v=12','Loading Sky Sprint...'],
     ['js/ui.js?v=5','Loading interface...'],
     ['js/game_state.js?v=3','Loading game state...'],
     ['js/tournament.js?v=1','Loading tournament system...'],
-    ['js/main.js?v=32','Starting 3D engine...']
+    ['js/main.js?v=33','Starting 3D engine...']
   ];
 
   async function start(){
