@@ -38,7 +38,6 @@ function openCharacterSelect(){
   const hud=document.getElementById('characterSelect3D');if(hud)hud.style.display='block';
   document.querySelector('#eventName').textContent='ATHLETE DRAFT';
   document.querySelector('#venue').innerHTML='<b>8 ATHLETES · 8 UNIQUE CHARACTERS</b><span>Click a 3D athlete to claim the character</span>';
-  gameState.set('CHARACTER_SELECT');
 }
 function chooseCharacter3D(id){
   if(!MGO_CHARACTERS[id])return;
