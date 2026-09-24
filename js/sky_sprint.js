@@ -37,10 +37,12 @@ function createSkySprint(scene){
   // Rival athletes use the exact same character model as the player.
   const rivals=[];
   const rivalColors=[0xe74c3c,0x16a085,0x8e44ad,0xf39c12,0x34495e];
+  const rivalCharacterIds=['duck','bheem','raju','ninja','sonic'];
   for(let i=0;i<5;i++){
-    const rival=createPlayer(scene);
+    const rival=createPlayer(scene,rivalCharacterIds[i]);
     rival.userData.rival=true;
     rival.visible=false;
+    rival.userData.characterId=rivalCharacterIds[i];
     rival.traverse(o=>{if(o.isMesh&&o.material&&o.material.color&&o.material.color.getHex()===0x2458d6)o.material=o.material.clone(),o.material.color.setHex(rivalColors[i]);});
     rivals.push(rival);
   }
