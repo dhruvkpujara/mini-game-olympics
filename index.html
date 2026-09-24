@@ -34,7 +34,11 @@
   <div id="controls" class="pill">A = LEFT · D = RIGHT · W/S = MOVE · SHIFT = SPRINT · SPACE = JUMP · C = SLIDE · MOUSE = CAMERA</div>
   <div id="toast"></div>
   <div id="selectedCharacterLabel" class="selected-character">Character: Blue Speedster</div>
-  <div id="characterSelect" class="character-select" aria-label="Choose your character">
+  <div id="characterSelect3D" class="character-select-3d" aria-live="polite">
+    <div class="draft-top"><span class="draft-kicker">ULTRA OLYMPICS · ATHLETE DRAFT</span><strong>CHOOSE YOUR 3D ATHLETE</strong><span class="draft-timer" id="characterPickTimer">18s</span></div>
+    <div class="draft-bottom"><span>CLICK A 3D CHARACTER</span><b id="characterPickName">Blue Speedster</b><small>8 players · no duplicate characters · auto-starts when the timer ends</small></div>
+  </div>
+  <div id="characterSelect" class="character-select" aria-hidden="true">
     <div class="character-select-card">
       <div class="character-select-kicker">CHOOSE YOUR ATHLETE</div>
       <h2>Pick a unique character</h2>
