@@ -53,7 +53,7 @@ function createSkySprint(scene){
 function startSkySprint(player,race){
   race.active=true;race.finished=false;race.time=0;race.coinCount=0;race.boost=0;race.hitCount=0;race.startTime=performance.now();race.checkpoint=0;race.lastSafePlatform=0;race.message='GO!';race.hitCooldown=0;race.playerFinished=false;race.rivalFinishTimes=[null,null,null,null,null,null,null];
   player.position.set(0,9.8,-110);
-  race.rivals.forEach((r,i)=>{r.visible=true;r.position.set((i-2)*3,9.8,-110-Math.min(i,2)*1.5);r.userData.vy=0;r.userData.raceSpeed=7.4+i*.28;r.userData.racePhase=i*.9;r.userData.finished=false;});player.rotation.set(0,0,0);player.visible=true;
+  race.rivals.forEach((r,i)=>{r.visible=true;r.position.set((i-2)*3,9.8,-110-Math.min(i,2)*1.5);r.userData.vy=0;r.userData.raceSpeed=7.6+Math.random()*1.35;r.userData.racePhase=i*.9;r.userData.finished=false;});player.rotation.set(0,0,0);player.visible=true;
 }
 
 function updateSkySprint(player,keys,dt,yaw,race,toast){
