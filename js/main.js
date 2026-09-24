@@ -5,7 +5,7 @@ scene.add(new THREE.HemisphereLight(0xdff6ff,0x31533a,2.5));const sun=new THREE.
 const world=createWorld(scene),race=createSkySprint(scene);
 let player=createPlayer(scene,'sonic');player.position.set(0,.1,22);
 let selectedCharacter='sonic';
-const characterChoices=['mario','duck','bheem','raju','ninja','sonic'];
+const characterChoices=['mario','duck','bheem','raju','ninja','sonic','panda','robot'];
 function openCharacterSelect(){
   const panel=document.getElementById('characterSelect');
   if(panel)panel.style.display='flex';
