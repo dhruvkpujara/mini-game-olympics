@@ -5,7 +5,9 @@ const MGO_CHARACTERS={
   bheem:{name:'Power Kid',inspired:'Indian cartoon strong kid',skin:0x8b5438,jersey:0xf59e0b,dark:0x9a3412,hair:0x24160f,accent:0xffd43b,shoe:0x7c2d12,type:'bheem'},
   raju:{name:'Super Kid',inspired:'Indian superhero kid',skin:0x9b6045,jersey:0xdc2626,dark:0x7f1d1d,hair:0x171717,accent:0xfacc15,shoe:0x111827,type:'raju'},
   ninja:{name:'Ninja Runner',inspired:'anime ninja',skin:0xf0b38c,jersey:0x334155,dark:0x172033,hair:0xf4c430,accent:0x60a5fa,shoe:0x111827,type:'ninja'},
-  sonic:{name:'Blue Speedster',inspired:'fast blue game hero',skin:0xe8b98c,jersey:0x2563eb,dark:0x123a9a,hair:0x1769e0,accent:0xf8fafc,shoe:0xe53935,type:'sonic'}
+  sonic:{name:'Blue Speedster',inspired:'fast blue game hero',skin:0xe8b98c,jersey:0x2563eb,dark:0x123a9a,hair:0x1769e0,accent:0xf8fafc,shoe:0xe53935,type:'sonic'},
+  panda:{name:'Panda Brawler',inspired:'martial-arts panda hero',skin:0xf8fafc,jersey:0x111827,dark:0x050505,hair:0x111111,accent:0x22c55e,shoe:0x111111,type:'panda'},
+  robot:{name:'Mecha Racer',inspired:'cartoon robot racer',skin:0x94a3b8,jersey:0x7c3aed,dark:0x312e81,hair:0x334155,accent:0x22d3ee,shoe:0x111827,type:'robot'}
 };
 const MGO_CHARACTER_IDS=Object.keys(MGO_CHARACTERS);
 
@@ -43,7 +45,19 @@ function createPlayer(scene,characterId='sonic'){
   capsule(.2,.25,0,3.45,0,mats.skin);
 
   // Character-specific head, hair and facial structure.
-  if(c.type==='duck'){
+  if(c.type==='panda'){
+    sphere(.8,0,4.18,0,mats.white,24,18);
+    sphere(.28,-.58,4.66,-.05,mats.black,16,12);sphere(.28,.58,4.66,-.05,mats.black,16,12);
+    for(const x of [-.28,.28]){const patch=sphere(.22,x,4.25,.66,mats.black,16,12);patch.scale.set(.85,1.25,.45);sphere(.07,x,4.26,.85,mats.white,12,10)}
+    sphere(.12,0,4.05,.83,mats.black,14,10);
+    const smile=new THREE.Mesh(new THREE.TorusGeometry(.16,.035,8,16,Math.PI),mats.mouth);smile.position.set(0,3.92,.79);smile.rotation.x=Math.PI/2;add(smile);
+  }else if(c.type==='robot'){
+    const head=box(1.35,1.25,1.12,0,4.18,0,mats.dark);head.rotation.z=.02;
+    box(1.02,.32,.10,0,4.28,.61,mats.black);
+    for(const x of [-.28,.28]){const eye=box(.22,.12,.06,x,4.28,.69,mats.accent);eye.material.emissive=new THREE.Color(c.accent);eye.material.emissiveIntensity=1.5}
+    box(.5,.08,.06,0,3.95,.69,mats.white);
+    const antenna=capsule(.055,.36,0,4.95,0,mats.accent);sphere(.12,0,5.18,0,mats.accent,12,8);
+  }else if(c.type==='duck'){
     sphere(.8,0,4.18,0,mats.white,24,18);
     sphere(.18,-.77,4.18,0,mats.white,14,10);sphere(.18,.77,4.18,0,mats.white,14,10);
     const hat=sphere(.63,0,4.67,0,mats.dark,22,12);hat.scale.y=.35;
@@ -99,6 +113,8 @@ function createPlayer(scene,characterId='sonic'){
   if(c.type==='raju'){box(1.2,.18,.06,0,2.62,.69,mats.accent);sphere(.13,0,2.88,.68,mats.accent,12,8)}
   if(c.type==='bheem'){sphere(.14,0,2.83,.7,mats.accent,12,8);box(.8,.12,.06,0,2.62,.7,mats.accent)}
   if(c.type==='ninja'){box(1.0,.12,.06,0,2.62,.69,mats.accent)}
+  if(c.type==='panda'){box(1.1,.16,.06,0,2.62,.69,mats.accent)}
+  if(c.type==='robot'){box(1.15,.2,.08,0,2.62,.69,mats.accent);sphere(.14,0,2.86,.72,mats.accent,12,8)}
 
   const leftLeg=capsule(.23,.72,-.4,.72,0,mats.skin),rightLeg=capsule(.23,.72,.4,.72,0,mats.skin);
   p.userData={vy:0,ground:true,slide:0,cool:0,l:leftLeg,r:rightLeg,torso,pelvis,runTime:0,leftArm:armL,rightArm:armR,characterId};
