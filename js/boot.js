@@ -35,7 +35,7 @@
     ['js/world.js?v=3','Loading Olympic Village...'],
     ['js/sky_sprint.js?v=14','Loading Sky Sprint...'],
     ['js/ui.js?v=5','Loading interface...'],
-    ['js/game_state.js?v=3','Loading game state...'],
+    ['js/game_state.js?v=4','Loading game state...'],
     ['js/tournament.js?v=1','Loading tournament system...'],
     ['js/main.js?v=36','Starting 3D engine...']
   ];
