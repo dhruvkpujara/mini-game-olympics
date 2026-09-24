@@ -2,13 +2,44 @@ const scene=new THREE.Scene();scene.background=new THREE.Color(0xbfe7ff);scene.f
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,500);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;document.querySelector('#game').appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xdff6ff,0x31533a,2.5));const sun=new THREE.DirectionalLight(0xfff2d0,3.5);sun.position.set(60,90,35);sun.castShadow=true;scene.add(sun);
-const world=createWorld(scene),race=createSkySprint(scene),player=createPlayer(scene);player.position.set(0,.1,22);
+const world=createWorld(scene),race=createSkySprint(scene);
+let player=createPlayer(scene,'sonic');player.position.set(0,.1,22);
+let selectedCharacter='sonic';
+const characterChoices=['mario','duck','bheem','raju','ninja','sonic'];
+function openCharacterSelect(){
+  const panel=document.getElementById('characterSelect');if(panel)panel.style.display='flex';
+  characterChoices.forEach(id=>{const b=document.querySelector('[data-character="'+id+'"]');if(b)b.disabled=false});
+  document.querySelectorAll('.character-card').forEach(b=>b.classList.toggle('selected',b.dataset.character===selectedCharacter));
+}
+function chooseCharacter(id){
+  if(!characterChoices.includes(id))return;
+  selectedCharacter=id;
+  document.querySelectorAll('.character-card').forEach(b=>b.classList.toggle('selected',b.dataset.character===id));
+}
+function confirmCharacter(){
+  selectedCharacter=selectedCharacter||'sonic';
+  player=replacePlayerCharacter(scene,player,selectedCharacter);
+  player.position.set(0,.1,22);
+  const rivalIds=characterChoices.filter(id=>id!==selectedCharacter);
+  race.rivals.forEach((r,i)=>{
+    const pos=r.position.clone(),vis=r.visible;
+    const next=replacePlayerCharacter(scene,r,rivalIds[i]);
+    next.userData.rival=true;next.userData.characterId=rivalIds[i];next.visible=vis;
+    race.rivals[i]=next;
+  });
+  const panel=document.getElementById('characterSelect');if(panel)panel.style.display='none';
+  document.querySelector('#selectedCharacterLabel').textContent=MGO_CHARACTERS[selectedCharacter].name;
+  skyCountdown=5;
+  gameState.set('SKY_COUNTDOWN');
+  showToast(MGO_CHARACTERS[selectedCharacter].name.toUpperCase()+' SELECTED!');
+}
+openCharacterSelect();
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>{keys[e.code]=false});addEventListener('blur',()=>{for(const k in keys)keys[k]=false});document.addEventListener('visibilitychange',()=>{if(document.hidden)for(const k in keys)keys[k]=false});
 let yaw=.25,pitch=.48,drag=false,lx=0,ly=0;let penaltyGoal=null,penaltyKeeper=null,penaltyKeeperT=0,penaltyBall=null,penaltyShot=null,penaltyAimPlane=null,penaltyAimMarker=null,penaltyAimZones=[];renderer.domElement.onmousedown=e=>{drag=true;lx=e.clientX;ly=e.clientY};addEventListener('mouseup',()=>drag=false);addEventListener('mousemove',e=>{if(!drag)return;yaw-=(e.clientX-lx)*.006;pitch=Math.max(.2,Math.min(1.05,pitch-(e.clientY-ly)*.004));lx=e.clientX;ly=e.clientY});
 let skyCountdown=5,returnTimer=0,resultHoldSeconds=7,elapsed=0,secondGame=false,targetTime=30,targetScore=0,targetHits=0,targetResultTimer=0,targetFlash=0,penaltyShots=0,penaltyGoals=0,penaltyTime=0,penaltyResultTimer=0,penaltyReady=false,penaltyCompleted=false,targets=[],targetMeshes=[],targetRay=new THREE.Raycaster(),mouse=new THREE.Vector2(),clock=new THREE.Clock();
 const tournament=MGOTournament.create(['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS']);
 tournament.start();
-const gameState=MGOGameState.create('SKY_COUNTDOWN');
+const gameState=MGOGameState.create('HUB');
 function renderTournamentBoard(title,rows){const b=document.querySelector('#raceBoard');if(!b)return;b.style.display='block';b.innerHTML='<b>'+title+'</b>'+rows.map((x,i)=>'<div class="race-row '+(x.name==='YOU'?'you':'')+'"><span>'+(i+1)+'. '+x.name+'</span><span>'+x.points+' PTS</span></div>').join('')}
 function awardSkySprintTournament(){const rows=skySprintLeaderboard(race).map(x=>({name:x.name,score:x.time,finished:x.finished}));rows.sort((a,b)=>a.score-b.score);tournament.addEventResult(rows);renderTournamentBoard('EVENT POINTS',Object.values(tournament.standings).sort((a,b)=>b.points-a.points))}
 function awardTargetTournament(){const you=targetArenaPlayers.find(x=>x.name==='YOU');if(you){you.score=targetScore;you.hits=targetHits}const rows=targetArenaPlayers.map(x=>({name:x.name,score:x.score})).sort((a,b)=>b.score-a.score);tournament.addEventResult(rows);renderTournamentBoard('TOURNAMENT STANDINGS',Object.values(tournament.standings).sort((a,b)=>b.points-a.points))}
@@ -432,11 +463,11 @@ function loop(){
 }
 window.MGO_DEBUG={
   getState:()=>gameState.state,
-  getSnapshot:()=>({state:gameState.state,skyCountdown,targetTime,targetScore,raceActive:race.active,raceFinished:race.finished,playerFinished:race.playerFinished}),
+  getSnapshot:()=>({state:gameState.state,skyCountdown,targetTime,targetScore,selectedCharacter,raceActive:race.active,raceFinished:race.finished,playerFinished:race.playerFinished}),
   lastFrame:performance.now(),
   lastError:null
 };
-const debugError=document.createElement('pre');
+document.querySelector('#selectedCharacterLabel')&&(document.querySelector('#selectedCharacterLabel').textContent=MGO_CHARACTERS[selectedCharacter].name);\nconst debugError=document.createElement('pre');
 debugError.id='debugError';
 debugError.style='display:none;position:fixed;left:12px;right:12px;bottom:12px;max-height:40vh;overflow:auto;background:#2b1111;color:#fff;padding:12px;border:1px solid #f55;border-radius:10px;z-index:9999;font:12px monospace;white-space:pre-wrap';
 document.body.appendChild(debugError);
