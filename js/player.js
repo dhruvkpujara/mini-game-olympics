@@ -42,13 +42,13 @@ function createPlayer(scene){
   sphere(.22,.43,.2,.7,mats.white,16,10);
 
   // Lower body and shorts.
-  capsule(.32,.7,0,1.0,0,mats.jerseyDark);
+  const pelvis=capsule(.34,.62,0,1.05,0,mats.jerseyDark);
   box(1.42,.62,.82,0,1.38,0,mats.black);
   box(.46,.58,.86,-.39,1.38,.02,mats.jersey);
   box(.46,.58,.86,.39,1.38,.02,mats.jersey);
 
-  // Torso with rounded chest.
-  capsule(.62,1.0,0,2.55,0,mats.jersey);
+  // Torso with a solid rounded silhouette so the full body always reads clearly.
+  const torso=capsule(.64,1.05,0,2.55,0,mats.jersey);
   box(1.15,.16,.75,0,2.45,.56,mats.white);
   box(1.15,.16,.75,0,2.45,-.56,mats.gold);
 
@@ -105,11 +105,11 @@ function createPlayer(scene){
   sphere(.12,.67,2.8,.25,mats.gold,12,8);
 
   // Animator-friendly body references.
-  const leftLeg=capsule(.2,.7,-.4,.72,0,mats.skin);
-  const rightLeg=capsule(.2,.7,.4,.72,0,mats.skin);
+  const leftLeg=capsule(.22,.72,-.4,.72,0,mats.skin);
+  const rightLeg=capsule(.22,.72,.4,.72,0,mats.skin);
   p.userData={
     vy:0,ground:true,slide:0,cool:0,
-    l:leftLeg,r:rightLeg,runTime:0,
+    l:leftLeg,r:rightLeg,torso,pelvis,runTime:0,
     leftArm:armL,rightArm:armR,
     head:p.children.find(o=>o.position?.y===4.15),
     shoeL:footL,shoeR:footR
