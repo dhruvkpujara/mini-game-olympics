@@ -1,5 +1,7 @@
 (function(global){
   const STATES=Object.freeze({
+    CHARACTER_SELECT:'CHARACTER_SELECT',
+    VILLAGE_INTRO:'VILLAGE_INTRO',
     HUB:'HUB',
     SKY_COUNTDOWN:'SKY_COUNTDOWN',
     SKY_SPRINT:'SKY_SPRINT',
