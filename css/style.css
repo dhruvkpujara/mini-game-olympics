@@ -70,3 +70,13 @@ body.penalty-mode #controls{background:#071b12e8;border-color:#4ade8066}
 .avatar-mario{background:#e53935}.avatar-duck{background:#f8fafc;color:#17324d}.avatar-bheem{background:#f59e0b}.avatar-raju{background:#dc2626}.avatar-ninja{background:#334155}.avatar-sonic{background:#1769e0}.avatar-panda{background:#111827}.avatar-robot{background:#7c3aed}
 .confirm-character{margin-top:18px;width:100%;padding:13px;border:0;border-radius:13px;background:#f5c542;color:#111827;font-weight:1000;cursor:pointer}
 @media(max-width:700px){.character-grid{grid-template-columns:repeat(2,1fr)}.character-select-card{padding:18px}.selected-character{left:12px;top:128px}}
+
+/* ULTRA OLYMPICS 3D ATHLETE DRAFT */
+.character-select-3d{display:none;position:fixed;left:50%;top:22px;transform:translateX(-50%);width:min(760px,calc(100vw - 32px));z-index:7200;text-align:center;pointer-events:none;color:#fff}
+.draft-top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:16px;padding:13px 18px;border:1px solid #ffffff33;border-radius:18px;background:linear-gradient(135deg,#071725ed,#153a57e8);box-shadow:0 18px 60px #0007;backdrop-filter:blur(14px)}
+.draft-kicker{font-size:9px;letter-spacing:2px;color:#7de7ff;font-weight:900;text-align:left}.draft-top strong{font-size:17px;letter-spacing:1px}.draft-timer{min-width:58px;padding:8px 10px;border-radius:12px;background:#f5c542;color:#101820;font-size:22px;font-weight:1000;box-shadow:0 0 25px #f5c54266}
+.draft-bottom{display:inline-flex;flex-direction:column;gap:3px;margin-top:10px;padding:9px 18px;border-radius:999px;background:#071725dd;border:1px solid #ffffff24;box-shadow:0 10px 35px #0005}.draft-bottom span{font-size:9px;letter-spacing:2px;color:#7de7ff;font-weight:900}.draft-bottom b{font-size:16px}.draft-bottom small{font-size:9px;color:#9fb4c4}
+.character-select-3d~.race-hud{top:110px}
+@media(max-width:700px){.draft-top{grid-template-columns:1fr auto}.draft-kicker{display:none}.draft-top strong{font-size:14px}.draft-timer{font-size:19px}.draft-bottom{max-width:calc(100vw - 32px)}}
+/* Final podium presentation */
+body.podium-mode #game canvas{filter:saturate(1.16) contrast(1.06)}
