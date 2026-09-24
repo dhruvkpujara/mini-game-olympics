@@ -1,4 +1,4 @@
-const EVENTS=['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS','MEMORY MAYHEM','TOWER BALANCE'];let ei=0,et=12,tt=0;
+const EVENTS=['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS'];let ei=0,et=12,tt=0;
 function showToast(s){const e=document.querySelector('#toast');e.textContent=s;e.style.opacity=1;tt=1}
 function updateUI(p,dt,inRace=false,inTarget=false,inPenalty=false){
   if(!inRace&&!inTarget&&!inPenalty){
