@@ -14,6 +14,101 @@ function awardSkySprintTournament(){const rows=skySprintLeaderboard(race).map(x=
 function awardTargetTournament(){const you=targetArenaPlayers.find(x=>x.name==='YOU');if(you){you.score=targetScore;you.hits=targetHits}const rows=targetArenaPlayers.map(x=>({name:x.name,score:x.score})).sort((a,b)=>b.score-a.score);tournament.addEventResult(rows);renderTournamentBoard('TOURNAMENT STANDINGS',Object.values(tournament.standings).sort((a,b)=>b.points-a.points))}
 function renderFinalPodiumBoard(){const rows=Object.values(tournament.standings).sort((a,b)=>b.points-a.points||((b.events?.reduce((s,e)=>s+e.points,0)||0)-(a.events?.reduce((s,e)=>s+e.points,0)||0)));const b=document.querySelector('#finalPodium');if(!b)return;b.style.display='block';b.innerHTML='<b>🏆 FINAL PODIUM · COMBINED SCORE</b>'+rows.slice(0,3).map((x,i)=>{const medals=['🥇','🥈','🥉'];const g1=x.events?.find(e=>e.event==='SKY SPRINT')?.points||0;const g2=x.events?.find(e=>e.event==='TARGET MAYHEM')?.points||0;const g3=x.events?.find(e=>e.event==='PENALTY KINGS')?.points||0;return '<div class="podium-row '+(x.name==='YOU'?'you':'')+'"><span>'+medals[i]+' '+x.name+'</span><span>G1 '+g1+' + G2 '+g2+' + G3 '+g3+' = <b>'+x.points+'</b></span></div>'}).join('')+'<div class="podium-total">TOP 3 · COMBINED RESULTS FROM ALL 3 GAMES</div>';const raceBoard=document.querySelector('#raceBoard');if(raceBoard)raceBoard.style.display='none'}
 function startPenaltyKings(){secondGame=false;penaltyShots=0;penaltyGoals=0;penaltyTime=0;penaltyResultTimer=0;penaltyReady=true;penaltyCompleted=false;penaltyKeeperT=0;penaltyShot=null;if(penaltyAimMarker)penaltyAimMarker.visible=false;document.querySelector('#eventName').textContent='PENALTY KINGS';document.querySelector('#venue').innerHTML='<b>FOOTBALL ARENA</b><span>5 shots · beat the AI goalkeeper</span>';setRaceVisible(true);buildPenaltyArena();player.position.set(0,.1,42);player.rotation.y=Math.PI;showToast('PENALTY KINGS! AIM FOR THE GOAL!');gameState.set('PENALTY_KINGS')}
+function createPenaltyStadium(group){
+  // Premium football pitch
+  const grass=new THREE.Mesh(
+    new THREE.PlaneGeometry(44,38),
+    new THREE.MeshStandardMaterial({color:0x176b38,roughness:.92,metalness:.02})
+  );
+  grass.rotation.x=-Math.PI/2;grass.position.set(0,.02,30);grass.receiveShadow=true;group.add(grass);
+
+  // Alternating pitch stripes
+  for(let i=0;i<11;i++){
+    const stripe=new THREE.Mesh(
+      new THREE.PlaneGeometry(4,38),
+      new THREE.MeshBasicMaterial({color:i%2?0x1d7a42:0x176b38})
+    );
+    stripe.rotation.x=-Math.PI/2;stripe.position.set(-20+i*4,0.025,30);group.add(stripe);
+  }
+
+  const lineMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.9});
+  const line=(w,h,x,y,z=29.96)=>{
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),lineMat);
+    m.rotation.x=-Math.PI/2;m.position.set(x,.045,z);group.add(m);return m;
+  };
+  line(44,.09,0,0,11);
+  line(44,.09,0,0,49);
+  line(.09,38,-22,0,30);
+  line(.09,38,22,0,30);
+  line(16,.08,0,0,34);
+  line(16,.08,0,0,26);
+
+  const centerCircle=new THREE.Mesh(
+    new THREE.RingGeometry(4.8,4.92,64),
+    lineMat
+  );
+  centerCircle.rotation.x=-Math.PI/2;centerCircle.position.set(0,.05,30);group.add(centerCircle);
+
+  // Penalty box and spot
+  line(24,.08,0,0,35.5);line(24,.08,0,0,24.5);
+  line(.08,11,-12,0,30);line(.08,11,12,0,30);
+  const spot=new THREE.Mesh(new THREE.CircleGeometry(.14,20),lineMat);
+  spot.rotation.x=-Math.PI/2;spot.position.set(0,.06,37);group.add(spot);
+
+  // Stadium seating / crowd backdrop
+  const standMat=new THREE.MeshStandardMaterial({color:0x17243a,roughness:.72});
+  for(let side of [-1,1]){
+    const stand=new THREE.Mesh(new THREE.BoxGeometry(6,5,34),standMat);
+    stand.position.set(side*25,2.5,30);stand.castShadow=true;stand.receiveShadow=true;group.add(stand);
+    for(let row=0;row<4;row++){
+      const rail=new THREE.Mesh(new THREE.BoxGeometry(.18,.18,30),new THREE.MeshStandardMaterial({color:0xf5c542,metalness:.5,roughness:.35}));
+      rail.position.set(side*(22.05-row*.7),1+row*.9,30);group.add(rail);
+    }
+  }
+
+  // Floodlights
+  for(const x of [-18,18]){
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(.18,.24,14,12),new THREE.MeshStandardMaterial({color:0x344454,metalness:.7,roughness:.3}));
+    pole.position.set(x,7,17);pole.castShadow=true;group.add(pole);
+    const lamp=new THREE.Mesh(new THREE.BoxGeometry(2.2,.45,.5),new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:2}));
+    lamp.position.set(x,14,17);group.add(lamp);
+    const light=new THREE.SpotLight(0xffffff,18,65,Math.PI/5,.45,1.2);
+    light.position.set(x,14,17);light.target.position.set(0,0,30);light.castShadow=true;
+    group.add(light,light.target);
+  }
+}
+function addGoalNetDetail(group){
+  const netMat=new THREE.LineBasicMaterial({color:0xc8e9f5,transparent:true,opacity:.38});
+  for(let x=-6;x<=6;x+=.75){
+    const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x,0,30.3),new THREE.Vector3(x,5,30.3)]);
+    group.add(new THREE.Line(geo,netMat));
+  }
+  for(let y=0;y<=5;y+=.65){
+    const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-6,y,30.3),new THREE.Vector3(6,y,30.3)]);
+    group.add(new THREE.Line(geo,netMat));
+  }
+}
+function buildPenaltyKeeperModel(){
+  const k=new THREE.Group();
+  const jersey=new THREE.MeshStandardMaterial({color:0xf59e0b,roughness:.6});
+  const shorts=new THREE.MeshStandardMaterial({color:0x111827,roughness:.65});
+  const skin=new THREE.MeshStandardMaterial({color:0xc98b68,roughness:.72});
+  const glove=new THREE.MeshStandardMaterial({color:0x7dd3fc,roughness:.4});
+  const body=new THREE.Mesh(new THREE.CapsuleGeometry(.55,1.05,6,12),jersey);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.43,20,14),skin);
+  const shortsMesh=new THREE.Mesh(new THREE.BoxGeometry(1.0,.45,.5),shorts);
+  const armL=new THREE.Mesh(new THREE.CapsuleGeometry(.13,.75,5,10),jersey);
+  const armR=armL.clone();
+  const gloveL=new THREE.Mesh(new THREE.SphereGeometry(.2,12,8),glove),gloveR=gloveL.clone();
+  const legL=new THREE.Mesh(new THREE.CapsuleGeometry(.16,.75,5,10),shorts),legR=legL.clone();
+  body.position.y=1.45;head.position.y=2.55;shortsMesh.position.y=.82;
+  armL.position.set(-.7,1.55,0);armR.position.set(.7,1.55,0);
+  gloveL.position.set(-.88,1.55,0);gloveR.position.set(.88,1.55,0);
+  legL.position.set(-.28,.35,0);legR.position.set(.28,.35,0);
+  k.add(body,head,shortsMesh,armL,armR,gloveL,gloveR,legL,legR);
+  k.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+  return k;
+}
 function buildPenaltyArena(){
   if(penaltyGoal){scene.remove(penaltyGoal);penaltyGoal=null}
   if(penaltyKeeper){scene.remove(penaltyKeeper);penaltyKeeper=null}
@@ -22,11 +117,12 @@ function buildPenaltyArena(){
   if(penaltyAimMarker){scene.remove(penaltyAimMarker);penaltyAimMarker=null}
   penaltyAimZones.forEach(z=>scene.remove(z));penaltyAimZones=[];
   const group=new THREE.Group();
-  const mat=new THREE.MeshStandardMaterial({color:0xffffff});
+  createPenaltyStadium(group);
+  const mat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.28,metalness:.35});
   const post=new THREE.Mesh(new THREE.BoxGeometry(.28,5,.28),mat),post2=post.clone(),bar=new THREE.Mesh(new THREE.BoxGeometry(12,.28,.28),mat);
   post.position.set(-6,2.5,30);post2.position.set(6,2.5,30);bar.position.set(0,5,30);
-  const net=new THREE.Mesh(new THREE.PlaneGeometry(12,5),new THREE.MeshBasicMaterial({color:0x8fb3c9,transparent:true,opacity:.16,side:THREE.DoubleSide}));net.position.set(0,2.5,30.3);
-  group.add(post,post2,bar,net);scene.add(group);penaltyGoal=group;
+  const net=new THREE.Mesh(new THREE.PlaneGeometry(12,5),new THREE.MeshBasicMaterial({color:0x9bd5e8,transparent:true,opacity:.10,side:THREE.DoubleSide}));net.position.set(0,2.5,30.3);
+  group.add(post,post2,bar,net);addGoalNetDetail(group);scene.add(group);penaltyGoal=group;
 
   // Invisible goal plane: clicks are converted into a real 3D point on the goal.
   penaltyAimPlane=new THREE.Mesh(
@@ -55,13 +151,9 @@ function buildPenaltyArena(){
   penaltyAimMarker.visible=false;
   scene.add(penaltyAimMarker);
 
-  penaltyBall=new THREE.Mesh(new THREE.SphereGeometry(.34,16,12),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.55}));penaltyBall.position.set(0,.45,39.8);scene.add(penaltyBall);
-  const k=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.7,.55),new THREE.MeshStandardMaterial({color:0xff8a3d}));
-  const head=new THREE.Mesh(new THREE.SphereGeometry(.48,16,12),new THREE.MeshStandardMaterial({color:0xf2c49b}));
-  const armL=new THREE.Mesh(new THREE.BoxGeometry(.25,1.5,.3),new THREE.MeshStandardMaterial({color:0xff8a3d})),armR=armL.clone();
-  body.position.y=1.4;head.position.y=2.65;armL.position.set(-.75,1.55,0);armR.position.set(.75,1.55,0);
-  k.add(body,head,armL,armR);k.position.set(0,0,29.35);scene.add(k);penaltyKeeper=k;
+  const ballMat=new THREE.MeshStandardMaterial({color:0xf8fafc,roughness:.3,metalness:.08});
+  penaltyBall=new THREE.Mesh(new THREE.SphereGeometry(.34,24,18),ballMat);penaltyBall.position.set(0,.45,39.8);penaltyBall.castShadow=true;penaltyBall.receiveShadow=true;scene.add(penaltyBall);
+  const k=buildPenaltyKeeperModel();k.position.set(0,0,29.35);scene.add(k);penaltyKeeper=k;
 }
 function updatePenaltyKeeper(dt){
   if(!penaltyKeeper)return;
