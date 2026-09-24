@@ -11,4 +11,35 @@ for(let tier=0;tier<4;tier++){box(s,68,1.1,4,0,1.2+tier*1.45,-81-tier*3.1,M.dark
 for(const x of [-30,30]){cyl(s,.45,12,x,6,-78,M.dark);cyl(s,1.4,1,x,12,-78,M.white)}box(s,38,.2,40,-55,.2,-58,M.con);const at=new THREE.Mesh(new THREE.RingGeometry(10,16,48),M.red);at.rotation.x=-Math.PI/2;at.position.set(-55,.3,-58);s.add(at);for(let i=0;i<6;i++)box(s,30,.08,2.8,-55,.35,-46+i*3,M.red);box(s,18,.05,5,-63,.36,-77,M.sand);label(s,'ATHLETICS CENTRE',-55,13,-77);box(s,46,.2,40,58,.2,-50,M.con);box(s,36,.18,24,58,.35,-50,M.green);for(const x of [39,77]){box(s,.25,3,.25,x,2,-57,M.white);box(s,.25,3,.25,x,2,-43,M.white);box(s,.25,.25,14,x,3.6,-50,M.white)}label(s,'FOOTBALL ARENA',58,13,-70);box(s,42,.2,36,55,.2,48,M.con);box(s,34,.15,28,55,.35,48,M.blue);for(let i=0;i<5;i++){box(s,2,.2,20,40+i*7,.55,48,M.road);for(let j=0;j<3;j++)cyl(s,1.6,.3,40+i*7,.7,40+j*8,M.white)}label(s,'CHALLENGE ARENA',55,11,30);box(s,40,.2,34,-58,.2,42,M.con);const rr=new THREE.Mesh(new THREE.RingGeometry(10,17,64),M.road);rr.rotation.x=-Math.PI/2;rr.position.set(-58,.3,42);s.add(rr);label(s,'RACING CIRCUIT',-58,11,25);for(let r=0;r<2;r++)for(let c=0;c<3;c++){const x=-58+c*18,z=90+r*16;box(s,13,7,10,x,3.7,z,M.white);box(s,13,1,10,x,7.7,z,M.blue)}label(s,'ATHLETE VILLAGE',-22,14,78);box(s,34,.25,34,0,.12,0,M.con);cyl(s,5,.5,0,.45,0,new THREE.MeshStandardMaterial({color:0x43bde8}));cyl(s,1.2,3,0,2,0,M.white);for(let i=0;i<75;i++){const x=Math.random()*210-105,z=Math.random()*210-105;if(Math.abs(x)<40||Math.abs(z)<30)continue;cyl(s,.4,3,x,1.5,z,M.wood);cyl(s,2,4,x,4,z,M.green)}
   // Olympic-ring entrance landmark.
   const ringColors=[0x1685c7,0x222222,0xe7b21b,0x159447,0xd83b3b];
-  ringColors.forEach((color,i)=>{const r=new THREE.Mesh(new THREE.TorusGeometry(3.2,.28,12,40),new THREE.MeshStandardMaterial({color,metalness:.35,roughness:.3}));r.position.set(-12+i*6,4,-2);r.rotation.x=Math.PI/2;s.add(r)});label(s,'OLYMPIC VILLAGE',0,11,-12);const athletes=[];return{athletes}}
+  ringColors.forEach((color,i)=>{const r=new THREE.Mesh(new THREE.TorusGeometry(3.2,.28,12,40),new THREE.MeshStandardMaterial({color,metalness:.35,roughness:.3}));r.position.set(-12+i*6,4,-2);r.rotation.x=Math.PI/2;s.add(r)});label(s,'OLYMPIC VILLAGE',0,11,-12);
+// Extra showcase layer: large, unmistakable 3D landmarks visible from the starting plaza.
+const cloudMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1});
+for(let c=0;c<14;c++){
+  const cg=new THREE.Group();
+  const cx=(c%7)*34-102, cz=-150+Math.floor(c/7)*55;
+  for(let j=0;j<5;j++){
+    const puff=new THREE.Mesh(new THREE.SphereGeometry(5+((j*3+c)%4),16,10),cloudMat);
+    puff.scale.y=.48;puff.position.set(j*7-14,(j%2)*1.6,Math.sin(j)*3);cg.add(puff);
+  }
+  cg.position.set(cx,72+(c%3)*8,cz);s.add(cg);
+}
+// Distant mountain silhouettes make the horizon read as a real environment.
+const mountainMat=new THREE.MeshStandardMaterial({color:0x47718a,roughness:1});
+for(let i=0;i<11;i++){
+  const mountain=new THREE.Mesh(new THREE.ConeGeometry(15+(i%3)*7,28+(i%4)*10,6),mountainMat);
+  mountain.position.set(-150+i*30,14,-145-(i%2)*18);mountain.rotation.y=i*.5;s.add(mountain);
+}
+// Plaza fountain with animated-looking layered rings.
+const fountainMat=new THREE.MeshStandardMaterial({color:0x4cc9f0,metalness:.2,roughness:.15,transparent:true,opacity:.78});
+for(let r=0;r<3;r++){
+  const fr=new THREE.Mesh(new THREE.CylinderGeometry(8-r*2,8-r*2,.22,48),new THREE.MeshStandardMaterial({color:r?0x8b9aa8:0xe8e5dc,roughness:.45}));
+  fr.position.set(0,.35+r*.42,-2);s.add(fr);
+}
+const water=new THREE.Mesh(new THREE.CylinderGeometry(5.6,5.6,.12,48),fountainMat);water.position.set(0,1.7,-2);s.add(water);
+// Giant entrance pillars.
+for(const x of [-15,15]){
+  box(s,2,14,2,x,7,-12,M.white);
+  box(s,3,1,3,x,14,-12,M.gold);
+}
+label(s,'WELCOME TO THE MINI GAME OLYMPICS',0,18,-15);
+const athletes=[];return{athletes}}
