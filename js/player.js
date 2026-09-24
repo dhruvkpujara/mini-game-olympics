@@ -117,3 +117,60 @@ function createPlayer(scene){
   scene.add(p);
   return p;
 }
+
+function updatePlayer(player,keys,dt,yaw,toast){
+  const u=player.userData;
+  u.cool=Math.max(0,(u.cool||0)-dt);
+  u.runTime=(u.runTime||0)+dt;
+
+  const forward=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));
+  const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+  const move=new THREE.Vector3();
+  if(keys.KeyW)move.add(forward);
+  if(keys.KeyS)move.sub(forward);
+  if(keys.KeyD)move.add(right);
+  if(keys.KeyA)move.sub(right);
+
+  const moving=move.lengthSq()>0;
+  if(moving){
+    move.normalize();
+    const speed=(keys.ShiftLeft||keys.ShiftRight)?11:6;
+    player.position.addScaledVector(move,speed*dt);
+    player.rotation.y=Math.atan2(move.x,move.z);
+  }
+
+  if(keys.Space&&u.ground){
+    u.vy=8.5;
+    u.ground=false;
+  }
+  u.vy-=22*dt;
+  player.position.y+=u.vy*dt;
+  if(player.position.y<=.1){
+    player.position.y=.1;
+    u.vy=0;
+    u.ground=true;
+  }
+
+  // Keep the hub athlete inside the playable village.
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-105,105);
+  player.position.z=THREE.MathUtils.clamp(player.position.z,-105,105);
+
+  // Simple squash-and-swing animation that works with the upgraded cartoon rig.
+  const stride=moving?Math.sin(u.runTime*12)*.48:0;
+  if(u.l)u.l.rotation.x=stride;
+  if(u.r)u.r.rotation.x=-stride;
+  if(u.leftArm)u.leftArm.rotation.x=-stride*.72;
+  if(u.rightArm)u.rightArm.rotation.x=stride*.72;
+  if(u.head)u.head.rotation.z=moving?Math.sin(u.runTime*6)*.025:0;
+
+  if(keys.KeyC&&!u.slide){
+    u.slide=0.45;
+    toast('SLIDE!');
+  }
+  if(u.slide>0){
+    u.slide-=dt;
+    player.scale.y=THREE.MathUtils.lerp(player.scale.y,.72,.22);
+  }else{
+    player.scale.y=THREE.MathUtils.lerp(player.scale.y,1,.18);
+  }
+}
