@@ -52,3 +52,7 @@
 /* Penalty Kings cinematic presentation */
 body.penalty-mode #controls{background:#071b12e8;border-color:#4ade8066}
 .penalty-aiming{cursor:crosshair}
+
+/* Global cinematic upgrade */
+.hud{font-family:Inter,Arial,sans-serif}.top,.pill,.race-hud,.race-board{backdrop-filter:blur(14px) saturate(135%)}
+#game canvas{filter:saturate(1.08) contrast(1.03)}
