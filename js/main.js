@@ -1,7 +1,7 @@
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xbfe7ff);scene.fog=new THREE.Fog(0xbfe7ff,80,220);
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,500);
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;document.querySelector('#game').appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0x65815d,2.2));const sun=new THREE.DirectionalLight(0xffffff,3);sun.position.set(60,90,35);sun.castShadow=true;scene.add(sun);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;document.querySelector('#game').appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xdff6ff,0x31533a,2.5));const sun=new THREE.DirectionalLight(0xfff2d0,3.5);sun.position.set(60,90,35);sun.castShadow=true;scene.add(sun);
 const world=createWorld(scene),race=createSkySprint(scene),player=createPlayer(scene);player.position.set(0,.1,22);
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>{keys[e.code]=false});addEventListener('blur',()=>{for(const k in keys)keys[k]=false});document.addEventListener('visibilitychange',()=>{if(document.hidden)for(const k in keys)keys[k]=false});
 let yaw=.25,pitch=.48,drag=false,lx=0,ly=0;let penaltyGoal=null,penaltyKeeper=null,penaltyKeeperT=0,penaltyBall=null,penaltyShot=null,penaltyAimPlane=null,penaltyAimMarker=null,penaltyAimZones=[];renderer.domElement.onmousedown=e=>{drag=true;lx=e.clientX;ly=e.clientY};addEventListener('mouseup',()=>drag=false);addEventListener('mousemove',e=>{if(!drag)return;yaw-=(e.clientX-lx)*.006;pitch=Math.max(.2,Math.min(1.05,pitch-(e.clientY-ly)*.004));lx=e.clientX;ly=e.clientY});
@@ -276,7 +276,7 @@ function spawnTarget(g,i){
   const target=g.userData.targetMesh;
   target.material.color.setHex(data.color);
   target.material.emissive.setHex(data.color);
-  target.material.emissiveIntensity=.28;
+  target.material.emissiveIntensity=.45;
   g.userData.points=data.points;g.userData.colorName=data.name;
   g.position.set((Math.random()*2-1)*12,Math.random()*.9,25-Math.floor(i/3)*10);
   g.visible=true;target.visible=true;g.userData.hit=false;
