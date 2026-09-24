@@ -7,28 +7,34 @@ let player=createPlayer(scene,'sonic');player.position.set(0,.1,22);
 let selectedCharacter='sonic';
 const characterChoices=['mario','duck','bheem','raju','ninja','sonic'];
 function openCharacterSelect(){
-  const panel=document.getElementById('characterSelect');if(panel)panel.style.display='flex';
-  characterChoices.forEach(id=>{const b=document.querySelector('[data-character="'+id+'"]');if(b)b.disabled=false});
-  document.querySelectorAll('.character-card').forEach(b=>b.classList.toggle('selected',b.dataset.character===selectedCharacter));
+  const panel=document.getElementById('characterSelect');
+  if(panel)panel.style.display='flex';
+  document.querySelectorAll('.character-card').forEach(function(b){
+    b.classList.toggle('selected',b.dataset.character===selectedCharacter);
+  });
 }
 function chooseCharacter(id){
-  if(!characterChoices.includes(id))return;
+  if(characterChoices.indexOf(id)<0)return;
   selectedCharacter=id;
-  document.querySelectorAll('.character-card').forEach(b=>b.classList.toggle('selected',b.dataset.character===id));
+  document.querySelectorAll('.character-card').forEach(function(b){
+    b.classList.toggle('selected',b.dataset.character===id);
+  });
 }
 function confirmCharacter(){
-  selectedCharacter=selectedCharacter||'sonic';
   player=replacePlayerCharacter(scene,player,selectedCharacter);
   player.position.set(0,.1,22);
-  const rivalIds=characterChoices.filter(id=>id!==selectedCharacter);
-  race.rivals.forEach((r,i)=>{
-    const pos=r.position.clone(),vis=r.visible;
+  const rivalIds=characterChoices.filter(function(id){return id!==selectedCharacter});
+  race.rivals.forEach(function(r,i){
+    const vis=r.visible;
     const next=replacePlayerCharacter(scene,r,rivalIds[i]);
-    next.userData.rival=true;next.userData.characterId=rivalIds[i];next.visible=vis;
+    next.userData.rival=true;
+    next.userData.characterId=rivalIds[i];
+    next.visible=vis;
     race.rivals[i]=next;
   });
-  const panel=document.getElementById('characterSelect');if(panel)panel.style.display='none';
-  document.querySelector('#selectedCharacterLabel').textContent=MGO_CHARACTERS[selectedCharacter].name;
+  const panel=document.getElementById('characterSelect');
+  if(panel)panel.style.display='none';
+  document.getElementById('selectedCharacterLabel').textContent=MGO_CHARACTERS[selectedCharacter].name;
   skyCountdown=5;
   gameState.set('SKY_COUNTDOWN');
   showToast(MGO_CHARACTERS[selectedCharacter].name.toUpperCase()+' SELECTED!');
@@ -467,7 +473,7 @@ window.MGO_DEBUG={
   lastFrame:performance.now(),
   lastError:null
 };
-document.querySelector('#selectedCharacterLabel')&&(document.querySelector('#selectedCharacterLabel').textContent=MGO_CHARACTERS[selectedCharacter].name);\nconst debugError=document.createElement('pre');
+const debugError=document.createElement('pre');
 debugError.id='debugError';
 debugError.style='display:none;position:fixed;left:12px;right:12px;bottom:12px;max-height:40vh;overflow:auto;background:#2b1111;color:#fff;padding:12px;border:1px solid #f55;border-radius:10px;z-index:9999;font:12px monospace;white-space:pre-wrap';
 document.body.appendChild(debugError);
