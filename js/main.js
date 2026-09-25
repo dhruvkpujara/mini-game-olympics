@@ -81,6 +81,7 @@ const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','Arro
 let yaw=.25,pitch=.48,drag=false,lx=0,ly=0;let penaltyGoal=null,penaltyKeeper=null,penaltyKeeperT=0,penaltyBall=null,penaltyShot=null,penaltyAimPlane=null,penaltyAimMarker=null,penaltyAimZones=[];renderer.domElement.onmousedown=e=>{drag=true;lx=e.clientX;ly=e.clientY};addEventListener('mouseup',()=>drag=false);addEventListener('mousemove',e=>{if(!drag)return;yaw-=(e.clientX-lx)*.006;pitch=Math.max(.2,Math.min(1.05,pitch-(e.clientY-ly)*.004));lx=e.clientX;ly=e.clientY});
 let skyCountdown=5,returnTimer=0,resultHoldSeconds=4,elapsed=0,secondGame=false,targetTime=25,targetScore=0,targetHits=0,targetResultTimer=0,targetFlash=0,penaltyShots=0,penaltyGoals=0,penaltyTime=0,penaltyResultTimer=0,penaltyReady=false,penaltyCompleted=false,targets=[],targetMeshes=[],targetRay=new THREE.Raycaster(),mouse=new THREE.Vector2(),clock=new THREE.Clock();
 let characterSelectTime=18,villageIntroTime=7,characterShowcase=null,characterShowcaseItems=[],selectedShowcaseId='sonic',villageIntroActive=false,podium3D=null;
+let gameBreakTime=6,gameBreakNext='TARGET MAYHEM';
 const PLAYER_NAMES=['YOU','BOLT','NOVA','DASH','ROCKET','FLASH','PANDA','MECHA'];
 let participantCharacterIds=['sonic','duck','bheem','raju','ninja','panda','robot','mario'];
 let penaltyRivalGoals=[2,3,1,4,2,3,2];
@@ -428,6 +429,38 @@ function updatePodiumCamera(){
 function renderTargetLeaderboard(){const rows=[...targetArenaPlayers].sort((a,b)=>b.score-a.score);renderTournamentBoard('TARGET MAYHEM',rows.map(x=>({name:x.name,points:Math.round(x.score)})))}
 function renderTargetResultsBoard(){const rows=[...targetArenaPlayers].sort((a,b)=>b.score-a.score);const b=document.querySelector('#raceBoard');if(!b)return;b.style.display='block';b.innerHTML='<b>GAME 2 RESULTS</b>'+rows.map((x,i)=>'<div class="race-row '+(x.name==='YOU'?'you':'')+'"><span>'+(i+1)+'. '+x.name+'</span><span>'+Math.round(x.score)+' · +'+(tournament.standings[x.name]?.events?.at(-1)?.points||0)+' PTS</span></div>').join('')}
 function updateRaceHUD(){const h=document.querySelector('#raceHud'),b=document.querySelector('#raceBoard');if(gameState.state==='CHARACTER_SELECT'){const hud=document.querySelector('#characterSelect3D');if(hud)hud.style.display='block';const timer=document.querySelector('#characterPickTimer');if(timer)timer.textContent=Math.ceil(characterSelectTime)+'s';document.querySelector('#characterPickName').textContent=MGO_CHARACTERS[selectedShowcaseId].name;}else if(gameState.state==='VILLAGE_INTRO'){const hud=document.querySelector('#characterSelect3D');if(hud)hud.style.display='none';}else if(gameState.state==='TARGET_MAYHEM'){setRaceVisible(true);renderTargetLeaderboard();return}if(gameState.state==='TARGET_RESULTS'){setRaceVisible(true);renderTargetResultsBoard();document.querySelector('#raceState').textContent='EVENT COMPLETE';document.querySelector('#raceTime').textContent=targetScore+' PTS';document.querySelector('#raceCheckpoint').textContent='POINTS AWARDED';document.querySelector('#raceStats').textContent='TOURNAMENT ROUND '+tournament.index+' / '+tournament.totalRounds;return}if(gameState.state==='PENALTY_RESULTS'){setRaceVisible(true);renderTournamentBoard('GAME 3 RESULTS',Object.values(tournament.standings).sort((a,b)=>b.points-a.points));document.querySelector('#raceState').textContent='EVENT COMPLETE';document.querySelector('#raceTime').textContent=penaltyGoals+' GOALS';document.querySelector('#raceCheckpoint').textContent='POINTS AWARDED';document.querySelector('#raceStats').textContent='TOURNAMENT ROUND '+tournament.index+' / '+tournament.totalRounds;return}if(gameState.state==='HUB'&&tournament.complete){setRaceVisible(true);renderFinalPodiumBoard();return}if(secondGame){return}if(gameState.state==='RACE_RESULTS'){setRaceVisible(true);renderTournamentBoard('TOURNAMENT STANDINGS',Object.values(tournament.standings).sort((a,b)=>b.points-a.points));document.querySelector('#raceState').textContent='EVENT COMPLETE';document.querySelector('#raceTime').textContent=race.time.toFixed(2)+'s';document.querySelector('#raceCheckpoint').textContent='POINTS AWARDED';document.querySelector('#raceStats').textContent='TOURNAMENT ROUND '+tournament.index+' / '+tournament.totalRounds;return}if(!race.active&&!race.finished){h.style.display='block';b.style.display='none';document.querySelector('#raceState').textContent='Starting in '+Math.ceil(skyCountdown)+'s';document.querySelector('#raceTime').textContent='GET READY';document.querySelector('#raceCheckpoint').textContent='SKY COURSE · 8 CHECKPOINTS';document.querySelector('#raceStats').textContent='COINS 0 · BOOST READY';return}setRaceVisible(true);document.querySelector('#raceState').textContent=race.finished?'RESULTS':'RACE LIVE';document.querySelector('#raceTime').textContent=race.finished?race.time.toFixed(2)+'s':race.time.toFixed(2)+'s';document.querySelector('#raceCheckpoint').textContent='CHECKPOINT '+race.checkpoint+' / 8';document.querySelector('#raceStats').textContent='COINS '+(race.coinCount||0)+' · BOOST '+((race.boost||0)>0?race.boost.toFixed(1)+'s':'READY');if(race.finished){const board=skySprintLeaderboard(race);b.innerHTML='<b>LEADERBOARD</b>'+board.slice(0,6).map((x,i)=>'<div class="race-row '+(x.name==='YOU'?'you':'')+'"><span>'+(i+1)+'. '+x.name+'</span><span>'+(x.finished?x.time.toFixed(2)+'s':'--')+'</span></div>').join('')}}
+function startGameBreak(nextGame){
+  gameBreakTime=6;
+  gameBreakNext=nextGame;
+  const title=document.querySelector('#breakTitle');
+  const subtitle=document.querySelector('#breakSubtitle');
+  const next=document.querySelector('#breakNextGame');
+  const overlay=document.querySelector('#gameBreak');
+  if(title)title.textContent='GAME BREAK';
+  if(subtitle)subtitle.textContent='The next event starts shortly';
+  if(next)next.textContent=nextGame;
+  if(overlay){overlay.classList.add('active');overlay.setAttribute('aria-hidden','false');}
+  setRaceVisible(false);
+  const board=document.querySelector('#raceBoard');if(board)board.style.display='none';
+  gameState.set('GAME_BREAK');
+}
+function updateGameBreakUI(){
+  const timer=document.querySelector('#breakTimer');
+  if(timer)timer.textContent=Math.ceil(gameBreakTime)+'s';
+  const next=document.querySelector('#breakNextGame');
+  if(next)next.textContent=gameBreakNext;
+}
+function endGameBreak(){
+  const overlay=document.querySelector('#gameBreak');
+  if(overlay){overlay.classList.remove('active');overlay.setAttribute('aria-hidden','true');}
+  if(gameBreakNext==='TARGET MAYHEM'){
+    startTargetMayhem();
+    gameState.set('TARGET_MAYHEM');
+  }else if(gameBreakNext==='PENALTY KINGS'){
+    startPenaltyKings();
+  }
+  showToast(gameBreakNext+' STARTING!');
+}
 function loop(){
   requestAnimationFrame(loop);
   const dt=Math.min(clock.getDelta(),.05);
@@ -480,13 +513,18 @@ function loop(){
           race.playerFinishTime=null;
           race.rivalFinishTimes=[];
           returnTimer=0;
-          startTargetMayhem();
-          gameState.set('TARGET_MAYHEM');
+          startGameBreak('TARGET MAYHEM');
         }
         break;
 
       case 'TARGET_MAYHEM':
         updateTargetMayhem(dt);
+        break;
+
+      case 'GAME_BREAK':
+        gameBreakTime=Math.max(0,gameBreakTime-dt);
+        updateGameBreakUI();
+        if(gameBreakTime<=0)endGameBreak();
         break;
 
       case 'TARGET_RESULTS':
@@ -495,7 +533,7 @@ function loop(){
         if(targetResultTimer>resultHoldSeconds){
           targetResultTimer=0;
           if(tournament.current==='PENALTY KINGS'){
-            startPenaltyKings();
+            startGameBreak('PENALTY KINGS');
           }else if(!tournament.complete){
             startNextTournamentEvent();
           }
@@ -510,7 +548,7 @@ function loop(){
         break;
     }
 
-    if(gameState.state==='CHARACTER_SELECT'){camera.position.lerp(new THREE.Vector3(0,8,31),.08);camera.lookAt(new THREE.Vector3(0,2.2,7));}else if(gameState.state==='HUB'&&tournament.complete){updatePodiumCamera();}else if(gameState.state==='TARGET_MAYHEM'||gameState.state==='TARGET_RESULTS')updateTargetCamera();else if(gameState.state==='PENALTY_KINGS'||gameState.state==='PENALTY_RESULTS')updatePenaltyCamera();else if(gameState.state==='SKY_SPRINT'||gameState.state==='SKY_COUNTDOWN')updateSkyCamera();else updateCamera(camera,player,yaw,pitch);
+    if(gameState.state==='CHARACTER_SELECT'){camera.position.lerp(new THREE.Vector3(0,8,31),.08);camera.lookAt(new THREE.Vector3(0,2.2,7));}else if(gameState.state==='GAME_BREAK'){updateCamera(camera,player,yaw,pitch);}else if(gameState.state==='HUB'&&tournament.complete){updatePodiumCamera();}else if(gameState.state==='TARGET_MAYHEM'||gameState.state==='TARGET_RESULTS')updateTargetCamera();else if(gameState.state==='PENALTY_KINGS'||gameState.state==='PENALTY_RESULTS')updatePenaltyCamera();else if(gameState.state==='SKY_SPRINT'||gameState.state==='SKY_COUNTDOWN')updateSkyCamera();else updateCamera(camera,player,yaw,pitch);
 
     if(gameState.state==='TARGET_MAYHEM'){
       document.querySelector('#raceHud').style.display='block';
