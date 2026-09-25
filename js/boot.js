@@ -30,7 +30,7 @@
   };
 
   const localFiles=[
-    ['js/player.js?v=14','Loading player...'],
+    ['js/player.js?v=15','Loading player...'],
     ['js/camera.js?v=3','Loading camera...'],
     ['js/world.js?v=3','Loading Olympic Village...'],
     ['js/sky_sprint.js?v=14','Loading Sky Sprint...'],
