@@ -22,7 +22,7 @@ function buildArena(){
   for(let i=0;i<18;i++){const x=(Math.random()-.5)*64,z=(Math.random()-.5)*64,h=3+Math.random()*8;box(x,h/2,z,3+Math.random()*4,h,3+Math.random()*4,0x1a2942,0x163e67,.45)}
   for(let i=0;i<5;i++){const p=new THREE.Mesh(new THREE.CylinderGeometry(2,2,.24,20),mat(0x26d9b4,0x26d9b4,2));p.position.set((i-2)*14,.12,i%2?12:-12);world.add(p)}
 }
-function makeRunner(c){const g=new THREE.Group();g.userData={alive:true,char:c,nextTag:0,respawnAt:0,shieldUntil:0,ai:{cool:0}};const body=new THREE.Mesh(new THREE.CapsuleGeometry(.55,1.1,6,12),mat(c.color,c.color,.18));body.position.y=1.15;g.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.48,20,16),mat(0xf1c7a7));head.position.y=2.15;g.add(head);return g}
+function makeRunner(c){const g=new THREE.Group();g.userData={alive:true,char:c,nextTag:0,respawnAt:0,shieldUntil:0,ai:{cool:0},score:0,tags:0};const body=new THREE.Mesh(new THREE.CapsuleGeometry(.55,1.1,6,12),mat(c.color,c.color,.18));body.position.y=1.15;g.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.48,20,16),mat(0xf1c7a7));head.position.y=2.15;g.add(head);return g}
 buildArena();
 let selectedChar=0;
 const player=makeRunner(chars[0]);player.position.set(0,0,28);scene.add(player);
@@ -40,6 +40,7 @@ function hud(){
   document.querySelector('#dashReady').textContent=s.dashing>0?'DASHING':'DASH READY';
   document.querySelector('#streak').textContent='STREAK ×'+s.streak;
   document.querySelector('#event').textContent=s.roundOver?'ROUND COMPLETE':(left<30?'FINAL PUSH':'CALM');
+  const board=document.querySelector('#leaderboard');if(board){const rows=all().map((t,i)=>({name:i===0?(player.userData.char?.name||'YOU'):t.userData.char.name,score:i===0?s.score:t.userData.score})).sort((a,b)=>b.score-a.score);board.innerHTML=rows.slice(0,4).map((r,i)=>'<div><b>#'+(i+1)+'</b><span>'+r.name+'</span><strong>'+r.score+'</strong></div>').join('');}
 }
 function resetRunner(t){
   t.userData.alive=true;t.userData.shieldUntil=0;t.visible=true;t.userData.nextTag=0;
@@ -49,7 +50,7 @@ function tagRunner(target,owner){
   if(!target.userData.alive||target===owner)return;
   if(target.userData.shieldUntil>s.time)return;
   target.userData.alive=false;target.visible=false;target.userData.respawnAt=s.time+C.respawnSeconds;
-  if(owner===player){s.score+=100;s.tags++;s.streak++;}else if(target===player){s.streak=0}
+  if(owner===player){s.score+=100;s.tags++;s.streak++;}else {owner.userData.score+=100;owner.userData.tags++;if(target===player)s.streak=0}
   const burst=new THREE.Mesh(new THREE.SphereGeometry(.25,12,12),new THREE.MeshBasicMaterial({color:0x8ff3ff,transparent:true,opacity:.9}));
   burst.position.copy(target.position);scene.add(burst);effects.push({m:burst,t:.5});
   hud();
@@ -118,7 +119,7 @@ document.querySelector('#loadoutBtn').onclick=()=>show(select);
 document.querySelector('#continueBtn').onclick=()=>show(lobby);
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>show(menu));
 document.querySelector('#copyRoom').onclick=async()=>{try{await navigator.clipboard.writeText('NOVA-7X4')}catch{}};
-function startMatch(){s.score=0;s.tags=0;s.streak=0;s.time=0;s.roundOver=false;s.active=true;s.tagReady=0;s.pulseReady=0;for(const t of all()){t.userData.alive=true;t.visible=true;t.userData.respawnAt=0}player.position.set(0,0,28);for(let i=0;i<bots.length;i++){const a=i*Math.PI*2/7;bots[i].position.set(Math.cos(a)*27,0,Math.sin(a)*27)}const c=chars[selectedChar];player.userData.char=c;player.children[0].material.color.setHex(c.color);document.querySelector('#playerName').textContent=c.name;document.querySelector('#playerAbility').textContent=c.ability;document.querySelector('#results').classList.add('hidden');[menu,select,lobby].forEach(x=>x.classList.add('hidden'));game.classList.remove('hidden');gameHud.classList.remove('hidden');hud()}document.querySelector('#launchBtn').onclick=startMatch;document.querySelector('#replayBtn').onclick=startMatch;
+function startMatch(){s.score=0;s.tags=0;s.streak=0;s.time=0;s.roundOver=false;s.active=true;s.tagReady=0;s.pulseReady=0;for(const t of all()){t.userData.alive=true;t.visible=true;t.userData.respawnAt=0;t.userData.score=0;t.userData.tags=0}player.position.set(0,0,28);for(let i=0;i<bots.length;i++){const a=i*Math.PI*2/7;bots[i].position.set(Math.cos(a)*27,0,Math.sin(a)*27)}const c=chars[selectedChar];player.userData.char=c;player.children[0].material.color.setHex(c.color);document.querySelector('#playerName').textContent=c.name;document.querySelector('#playerAbility').textContent=c.ability;document.querySelector('#results').classList.add('hidden');[menu,select,lobby].forEach(x=>x.classList.add('hidden'));game.classList.remove('hidden');gameHud.classList.remove('hidden');hud()}document.querySelector('#launchBtn').onclick=startMatch;document.querySelector('#replayBtn').onclick=startMatch;
 
 addEventListener('keydown',e=>{s.keys.add(e.code);if(e.code==='Space'){e.preventDefault();if(s.grounded){s.jump=7.5;s.grounded=false}}if(e.code==='KeyQ')pulseAbility();if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&e.repeat===false)dash();hud()});
 addEventListener('keyup',e=>s.keys.delete(e.code));
