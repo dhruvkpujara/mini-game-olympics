@@ -3,7 +3,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.m
 const C={maxPlayers:8,roundSeconds:180,respawnSeconds:3};
 const chars=[['Volt',0x43d9ff,'Speed Surge'],['Nova',0xff5f8f,'Energy Shield'],['Echo',0x8b7bff,'Decoy Drone'],['Flux',0x53f08a,'Gravity Pulse'],['Blaze',0xffa347,'Shockwave'],['Zero',0xdde8ff,'Phase Dash'],['Pixel',0xffe45c,'Repair Field'],['Orbit',0x72a7ff,'Jet Burst']].map(x=>({name:x[0],color:x[1],ability:x[2]}));
 
-const s={score:0,tags:0,streak:0,time:0,yaw:0,keys:new Set(),locked:false,jump:0,grounded:true,dashing:0,tagReady:0,pulseReady:0,roundOver:false};
+const s={score:0,tags:0,streak:0,time:0,yaw:0,keys:new Set(),locked:false,jump:0,grounded:true,dashing:0,tagReady:0,pulseReady:0,roundOver:false,active:false};
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(64,innerWidth/innerHeight,.1,220);
 const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -78,7 +78,6 @@ function dash(){
 }
 function move(dt){
   if(!player.userData.alive){if(s.time>=player.userData.respawnAt)resetRunner(player);return}
-  if(s.keys.has('Space')&&s.grounded&&!s.dashing){s.jump=7.5;s.grounded=false}
   s.jump-=18*dt;player.position.y+=s.jump*dt;
   if(player.position.y<=0){player.position.y=0;s.jump=0;s.grounded=true}
   const f=(s.keys.has('KeyW')?1:0)-(s.keys.has('KeyS')?1:0),x=(s.keys.has('KeyD')?1:0)-(s.keys.has('KeyA')?1:0);
@@ -119,9 +118,9 @@ document.querySelector('#loadoutBtn').onclick=()=>show(select);
 document.querySelector('#continueBtn').onclick=()=>show(lobby);
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>show(menu));
 document.querySelector('#copyRoom').onclick=async()=>{try{await navigator.clipboard.writeText('NOVA-7X4')}catch{}};
-document.querySelector('#launchBtn').onclick=()=>{[menu,select,lobby].forEach(x=>x.classList.add('hidden'));game.classList.remove('hidden');gameHud.classList.remove('hidden');const c=chars[selectedChar];player.userData.char=c;player.children[0].material.color.setHex(c.color);document.querySelector('#playerName').textContent=c.name;document.querySelector('#playerAbility').textContent=c.ability;hud()};
+function startMatch(){s.score=0;s.tags=0;s.streak=0;s.time=0;s.roundOver=false;s.active=true;s.tagReady=0;s.pulseReady=0;for(const t of all()){t.userData.alive=true;t.visible=true;t.userData.respawnAt=0}player.position.set(0,0,28);for(let i=0;i<bots.length;i++){const a=i*Math.PI*2/7;bots[i].position.set(Math.cos(a)*27,0,Math.sin(a)*27)}const c=chars[selectedChar];player.userData.char=c;player.children[0].material.color.setHex(c.color);document.querySelector('#playerName').textContent=c.name;document.querySelector('#playerAbility').textContent=c.ability;document.querySelector('#results').classList.add('hidden');[menu,select,lobby].forEach(x=>x.classList.add('hidden'));game.classList.remove('hidden');gameHud.classList.remove('hidden');hud()}document.querySelector('#launchBtn').onclick=startMatch;document.querySelector('#replayBtn').onclick=startMatch;
 
-addEventListener('keydown',e=>{s.keys.add(e.code);if(e.code==='Space'){e.preventDefault();if(s.grounded){}else{} }if(e.code==='KeyQ')pulseAbility();if(e.code==='Space'&&e.repeat===false&&s.grounded===false){}if(e.code==='ShiftLeft'&&e.repeat===false)dash();hud()});
+addEventListener('keydown',e=>{s.keys.add(e.code);if(e.code==='Space'){e.preventDefault();if(s.grounded){s.jump=7.5;s.grounded=false}}if(e.code==='KeyQ')pulseAbility();if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&e.repeat===false)dash();hud()});
 addEventListener('keyup',e=>s.keys.delete(e.code));
 renderer.domElement.onclick=()=>{if(!s.locked)renderer.domElement.requestPointerLock?.();else tagPulse(player)};
 document.addEventListener('pointerlockchange',()=>s.locked=document.pointerLockElement===renderer.domElement);
@@ -129,10 +128,5 @@ document.addEventListener('mousemove',e=>{if(s.locked)s.yaw-=e.movementX*.0024})
 addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 
-function loop(){
-  requestAnimationFrame(loop);
-  const dt=Math.min(clock.getDelta(),.05);
-  if(!s.roundOver){s.time+=dt;if(s.time>=C.roundSeconds)s.roundOver=true;move(dt);botsUpdate(dt);tagsUpdate(dt);effectsUpdate(dt);worldUpdate();cameraUpdate();hud()}
-  renderer.render(scene,camera);
-}
+function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05);if(s.active&&!s.roundOver){s.time+=dt;if(s.time>=C.roundSeconds){s.time=C.roundSeconds;s.roundOver=true;document.querySelector('#finalScore').textContent=s.score;document.querySelector('#results').classList.remove('hidden')}move(dt);botsUpdate(dt);tagsUpdate(dt);effectsUpdate(dt);worldUpdate();cameraUpdate();hud()}renderer.render(scene,camera)}
 hud();loop();
