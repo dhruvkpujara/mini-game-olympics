@@ -59,8 +59,14 @@
         setProgress(15+i*10,label,src.split('?')[0]);
         await loadScript(src,label);
         if(src.startsWith('js/gltf_characters.js')){
-          setProgress(22,'Loading GLB character model...','Quaternius humanoid');
-          await window.MGO_GLTF_READY;
+          setProgress(22,'Starting GLB character loader...','3D model loads in the background');
+          const glbReady=window.MGO_GLTF_READY;
+          if(glbReady && typeof glbReady.then==='function'){
+            glbReady.then(result=>{
+              if(result) console.info('[Mini Game Olympics] GLB character ready.');
+              else console.warn('[Mini Game Olympics] GLB unavailable; using procedural fallback.');
+            }).catch(err=>console.warn('[Mini Game Olympics] GLB background load failed:',err));
+          }
         }
       }
 
