@@ -1,13 +1,9 @@
-// Background GLB character loader.
-// The game must never block on a remote 3D asset: if the CDN/model is unavailable,
-// player.js immediately falls back to its built-in 3D athletes.
+// Optional background GLB character loader.
+// The game never blocks on this asset: player.js always has a procedural fallback.
 window.MGO_GLTF_READY=(async()=>{
   try{
-    const [{GLTFLoader},{SkeletonUtils}]=await Promise.all([
-      import('three/addons/loaders/GLTFLoader.js'),
-      import('three/addons/utils/SkeletonUtils.js')
-    ]);
-    const loader=new GLTFLoader();
+    if(!window.THREE?.GLTFLoader)throw new Error('GLTFLoader is unavailable');
+    const loader=new THREE.GLTFLoader();
     loader.setCrossOrigin('anonymous');
     const url='https://raw.githubusercontent.com/programasweights/avatar/main/public/assets/character.glb';
     const gltf=await Promise.race([
@@ -21,7 +17,10 @@ window.MGO_GLTF_READY=(async()=>{
     window.MGO_GLTF={
       template,
       animations:gltf.animations||[],
-      clone:()=>SkeletonUtils.clone(template)
+      clone:()=>{
+        if(THREE.SkeletonUtils?.clone)return THREE.SkeletonUtils.clone(template);
+        return template.clone(true);
+      }
     };
     return window.MGO_GLTF;
   }catch(err){
