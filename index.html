@@ -7,18 +7,8 @@
 <meta name="description" content="Mini Game Olympics — a fast 3D sports mini-game tournament.">
 <title>Mini Game Olympics</title>
 <link rel="stylesheet" href="css/style.css">
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
-<script type="module">
-  import * as THREE_MODULE from 'three';
-  window.THREE = THREE_MODULE;
-  window.dispatchEvent(new Event('three-ready'));
+<script>
+  // Classic Three.js is loaded by boot.js for broad browser compatibility.
 </script>
 </head>
 <body>
@@ -83,6 +73,6 @@
   <div id="raceBoard" class="race-board"></div><div id="finalPodium" class="final-podium" aria-live="polite"></div>
 </div>
 
-<script src="js/boot.js?v=16"></script>
+<script src="js/boot.js?v=18"></script>
 </body>
 </html>
