@@ -244,7 +244,7 @@ function updatePenaltyKeeper(dt){
     penaltyKeeper.position.x=THREE.MathUtils.lerp(patrol,penaltyShot.keeperTargetX,reaction);
     penaltyKeeper.rotation.z=Math.sin(reaction*Math.PI)*.12*(penaltyShot.keeperTargetX>=0? -1:1);
   }else{
-    penaltyKeeper.position.x=patrol;
+    penaltyKeeper.position.x=Math.sin(penaltyKeeperT*2.7)*3.4;
     penaltyKeeper.rotation.z=0;
   }
 }
