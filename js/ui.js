@@ -1,7 +1,7 @@
 const EVENTS=['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS'];let ei=0,et=12,tt=0;
 function showToast(s){const e=document.querySelector('#toast');e.textContent=s;e.style.opacity=1;tt=1}
-function updateUI(p,dt,inRace=false,inTarget=false,inPenalty=false){
-  if(!inRace&&!inTarget&&!inPenalty){
+function updateUI(p,dt,inRace=false,inTarget=false,inPenalty=false,preserveEvent=false){
+  if(!preserveEvent&&!inRace&&!inTarget&&!inPenalty){
     et-=dt;
     if(et<=0){ei=(ei+1)%EVENTS.length;et=12;showToast('EVENT READY: '+EVENTS[ei])}
     document.querySelector('#eventName').textContent=EVENTS[ei];
