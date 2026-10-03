@@ -4,18 +4,18 @@ const { execFileSync } = require('node:child_process');
 
 const read=p=>fs.readFileSync(p,'utf8');
 const required=[
-  'index.html','js/boot.js','js/gltf_characters.js','js/player.js','js/camera.js',
+  'index.html','game.html','js/boot.js','js/gltf_characters.js','js/player.js','js/camera.js',
   'js/world.js','js/sky_sprint.js','js/ui.js','js/game_state.js','js/tournament.js','js/main.js'
 ];
 for(const p of required)if(!fs.existsSync(p))throw new Error('Missing required file: '+p);
 for(const p of required.filter(p=>p.endsWith('.js')))execFileSync(process.execPath,['--check',p],{stdio:'inherit'});
 
-const index=read('index.html'),boot=read('js/boot.js'),main=read('js/main.js');
+const index=read('index.html'),game=read('game.html'),boot=read('js/boot.js'),main=read('js/main.js');
 const tournamentSource=read('js/tournament.js'),stateSource=read('js/game_state.js');
 const invariants=[
-  ['classic Three CDN loader',boot,'three@0.160.0/build/three.min.js'],
-  ['Three CDN fallback',boot,'unpkg.com/three@0.160.0/build/three.min.js'],
-  ['classic GLTF loader',boot,'examples/js/loaders/GLTFLoader.js'],
+  ['classic Three CDN loader',boot,'three@0.151.3/build/three.min.js'],
+  ['Three CDN fallback',boot,'unpkg.com/three@0.151.3/build/three.min.js'],
+    ['cdnjs Three fallback',boot,'cdnjs.cloudflare.com/ajax/libs/three.js/r151/three.min.js'],
   ['global Three check',boot,'window.THREE'],
   ['boot cache main v42',boot,'js/main.js?v=42'],
   ['boot cache player v21',boot,'js/player.js?v=21'],
@@ -31,7 +31,7 @@ const invariants=[
   ['target rival colors',main,'0xe05aa6,0x31d9ef']
 ];
 for(const [name,src,needle] of invariants)if(!src.includes(needle))throw new Error('Missing invariant: '+name);
-if(/importmap|three\.module\.js|three\/addons\//.test(index+boot+read('js/gltf_characters.js')))throw new Error('Module-based Three.js startup path is still present.');
+if(/importmap|three\.module\.js|three\/addons\//.test(index+game+boot+read('js/gltf_characters.js')))throw new Error('Module-based Three.js startup path is still present.');
 
 const ctx={console};ctx.window=ctx;vm.createContext(ctx);
 vm.runInContext(tournamentSource,ctx,{filename:'js/tournament.js'});
