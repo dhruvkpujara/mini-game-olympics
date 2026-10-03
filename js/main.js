@@ -79,7 +79,7 @@ renderer.domElement.addEventListener('click',shootCharacterSelect);
 queueMicrotask(openCharacterSelect);
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>{keys[e.code]=false});addEventListener('blur',()=>{for(const k in keys)keys[k]=false});document.addEventListener('visibilitychange',()=>{if(document.hidden)for(const k in keys)keys[k]=false});
 let yaw=.25,pitch=.48,drag=false,lx=0,ly=0;let penaltyGoal=null,penaltyKeeper=null,penaltyKeeperT=0,penaltyBall=null,penaltyShot=null,penaltyAimPlane=null,penaltyAimMarker=null,penaltyAimZones=[];renderer.domElement.onmousedown=e=>{drag=true;lx=e.clientX;ly=e.clientY};addEventListener('mouseup',()=>drag=false);addEventListener('mousemove',e=>{if(!drag)return;yaw-=(e.clientX-lx)*.006;pitch=Math.max(.2,Math.min(1.05,pitch-(e.clientY-ly)*.004));lx=e.clientX;ly=e.clientY});
-let skyCountdown=5,returnTimer=0,resultHoldSeconds=4,elapsed=0,secondGame=false,targetTime=25,targetScore=0,targetHits=0,targetResultTimer=0,targetFlash=0,penaltyShots=0,penaltyGoals=0,penaltyTime=0,penaltyResultTimer=0,penaltyReady=false,penaltyCompleted=false,targets=[],targetMeshes=[],targetRay=new THREE.Raycaster(),mouse=new THREE.Vector2(),clock=new THREE.Clock();
+let skyCountdown=5,returnTimer=0,resultHoldSeconds=7,elapsed=0,secondGame=false,targetTime=25,targetScore=0,targetHits=0,targetResultTimer=0,targetFlash=0,penaltyShots=0,penaltyGoals=0,penaltyTime=0,penaltyResultTimer=0,penaltyReady=false,penaltyCompleted=false,targets=[],targetMeshes=[],targetRay=new THREE.Raycaster(),mouse=new THREE.Vector2(),clock=new THREE.Clock();
 let characterSelectTime=18,villageIntroTime=7,characterShowcase=null,characterShowcaseItems=[],selectedShowcaseId='sonic',villageIntroActive=false,podium3D=null;
 let gameBreakTime=6,gameBreakNext='TARGET MAYHEM';
 const PLAYER_NAMES=['YOU','BOLT','NOVA','DASH','ROCKET','FLASH','PANDA','MECHA'];
@@ -244,7 +244,7 @@ function updatePenaltyKeeper(dt){
     penaltyKeeper.position.x=THREE.MathUtils.lerp(patrol,penaltyShot.keeperTargetX,reaction);
     penaltyKeeper.rotation.z=Math.sin(reaction*Math.PI)*.12*(penaltyShot.keeperTargetX>=0? -1:1);
   }else{
-    penaltyKeeper.position.x=patrol;
+    penaltyKeeper.position.x=Math.sin(penaltyKeeperT*2.7)*3.4;
     penaltyKeeper.rotation.z=0;
   }
 }
@@ -334,7 +334,7 @@ function shootPenalty(e){
     penaltyGoals++;
     showToast('GOAL! ⚽ EXACT TARGET HIT!');
   }else{
-    showToast('SAVED! 🧤 THE GK READ YOUR AIM!');
+    showToast('SAVED! 🧤 GK READ YOUR SHOT!');
   }
 }
 renderer.domElement.addEventListener('click',shootPenalty);

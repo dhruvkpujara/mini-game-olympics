@@ -149,3 +149,16 @@ assert(main.includes("function updatePenaltyKeeper(dt)"), "Penalty Kings goalkee
 assert(main.includes("penaltyKeeper.position.x=Math.sin"), "Goalkeeper must move dynamically");
 assert(main.includes("GK READ YOUR SHOT"), "Goalkeeper save feedback missing");
 assert(main.includes("const keeperX=penaltyKeeper?penaltyKeeper.position.x:0"), "Penalty shot must account for goalkeeper position");
+
+const characterPreferences = await readFile(path.join(root, "js/character_preferences.js"), "utf8");
+assert(characterPreferences.includes("MGO_CHARACTER_PREFS"), "Character preference config missing");
+assert(characterPreferences.includes("getCharacterPreferences"), "Character preference resolver missing");
+assert(characterPreferences.includes('"default": "blueSpeedster"'), "Character preference default missing");
+
+const player = await readFile(path.join(root, "js/player.js"), "utf8");
+assert(player.includes("CHARACTER_DEFINITIONS"), "Character definitions layer missing");
+assert(player.includes("createCharacterMaterials"), "Character material factory missing");
+assert(player.includes("buildCharacterHead"), "Character head builder missing");
+assert(player.includes("updateCharacterAppearance"), "Character appearance update API missing");
+assert(player.includes("characterPreferences"), "Character preferences must be preserved on player state");
+assert(player.includes("const MGO_CHARACTERS ="), "Backward-compatible character catalog missing");

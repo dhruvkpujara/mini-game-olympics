@@ -15,7 +15,9 @@ Runtime flow:
 
 `js/boot.js` — startup loader, Three.js loading, backup CDN path, progress and visible startup errors.
 
-`js/player.js` — procedural athlete roster, character construction, replacement, movement, jump, sprint, slide and running animation.
+`js/character_preferences.js` — data-only character preference overrides and preference resolver.
+
+`js/player.js` — character definitions, material/geometry builders, appearance replacement, movement, jump, sprint, slide and running animation. Character appearance is isolated from gameplay state.
 
 `js/camera.js` — third-person follow camera.
 
