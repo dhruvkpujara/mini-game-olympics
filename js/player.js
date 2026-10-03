@@ -14,7 +14,7 @@ const MGO_CHARACTERS={
 };
 const MGO_CHARACTER_IDS=Object.keys(MGO_CHARACTERS);
 
-function createPlayer(scene,characterId='sonic'){
+function createProceduralPlayer(scene,characterId='sonic'){
   const c=MGO_CHARACTERS[characterId]||MGO_CHARACTERS.sonic;
   const p=new THREE.Group();
   p.name='PremiumHuman_'+characterId;
@@ -191,6 +191,88 @@ function createPlayer(scene,characterId='sonic'){
   return p;
 }
 
+function findBone(root,patterns){
+  let found=null;
+  root.traverse(o=>{
+    if(found||!o.isBone)return;
+    const n=(o.name||'').toLowerCase();
+    if(patterns.some(p=>n.includes(p)))found=o;
+  });
+  return found;
+}
+function tintGLBCharacter(root,characterId){
+  const c=MGO_CHARACTERS[characterId]||MGO_CHARACTERS.sonic;
+  const accent=new THREE.Color(c.accent),main=new THREE.Color(c.jersey);
+  root.traverse(o=>{
+    if(!o.isMesh)return;
+    o.castShadow=true;o.receiveShadow=true;
+    if(o.material){
+      const m=Array.isArray(o.material)?o.material.map(x=>x.clone()):o.material.clone();
+      const apply=x=>{
+        if(!x.color)return;
+        const n=(o.name||'').toLowerCase();
+        if(n.includes('hair'))x.color.set(c.hair);
+        else if(n.includes('shoe')||n.includes('boot'))x.color.set(c.shoe);
+        else if(n.includes('eye'))x.color.set(0xffffff);
+        else if(n.includes('shirt')||n.includes('jacket')||n.includes('torso')||n.includes('body'))x.color.copy(main);
+        else x.color.lerp(accent,.22);
+      };
+      if(Array.isArray(m))m.forEach(apply);else apply(m);
+      o.material=m;
+    }
+  });
+}
+function createGLBPlayer(scene,characterId){
+  if(!window.MGO_GLTF?.clone)return null;
+  const p=new THREE.Group();
+  p.name='GLBHumanAthlete_'+characterId;
+  p.userData.characterId=characterId;
+  const model=window.MGO_GLTF.clone();
+  model.scale.setScalar(3.05);
+  model.position.y=.02;
+  tintGLBCharacter(model,characterId);
+  p.add(model);
+  const bones={
+    hips:findBone(model,['hips','pelvis']),
+    leftUpperLeg:findBone(model,['leftupleg','leftthigh','leftupperleg']),
+    rightUpperLeg:findBone(model,['rightupleg','rightthigh','rightupperleg']),
+    leftLeg:findBone(model,['leftleg','leftlowerleg']),
+    rightLeg:findBone(model,['rightleg','rightlowerleg']),
+    leftFoot:findBone(model,['leftfoot']),
+    rightFoot:findBone(model,['rightfoot']),
+    leftArm:findBone(model,['leftarm','leftupperarm']),
+    rightArm:findBone(model,['rightarm','rightupperarm']),
+    leftForeArm:findBone(model,['leftforearm','leftlowerarm']),
+    rightForeArm:findBone(model,['rightforearm','rightlowerarm']),
+    spine:findBone(model,['spine2','spine1','spine']),
+    head:findBone(model,['head'])
+  };
+  p.userData={
+    vy:0,ground:true,slide:0,cool:0,runTime:0,characterId,
+    model,bones,glb:true
+  };
+  scene.add(p);
+  return p;
+}
+function updateGLBAnimation(p,moving,dt){
+  const u=p.userData;if(!u?.bones)return;
+  const b=u.bones;
+  u.runTime+=dt;
+  const stride=moving?Math.sin(u.runTime*12)*.52:Math.sin(u.runTime*2)*.035;
+  if(b.leftUpperLeg)b.leftUpperLeg.rotation.x=stride;
+  if(b.rightUpperLeg)b.rightUpperLeg.rotation.x=-stride;
+  if(b.leftLeg)b.leftLeg.rotation.x=-stride*.42;
+  if(b.rightLeg)b.rightLeg.rotation.x=stride*.42;
+  if(b.leftArm)b.leftArm.rotation.x=-stride*.72;
+  if(b.rightArm)b.rightArm.rotation.x=stride*.72;
+  if(b.leftForeArm)b.leftForeArm.rotation.x=-stride*.35;
+  if(b.rightForeArm)b.rightForeArm.rotation.x=stride*.35;
+  if(b.spine)b.spine.rotation.z=Math.sin(u.runTime*2)*.018;
+  if(b.head)b.head.rotation.y=Math.sin(u.runTime*1.7)*.035;
+}
+function createPlayer(scene,characterId='sonic'){
+  return createGLBPlayer(scene,characterId)||createProceduralPlayer(scene,characterId);
+}
 function replacePlayerCharacter(scene,oldPlayer,characterId){
   const pos=oldPlayer.position.clone(),rot=oldPlayer.rotation.clone(),scale=oldPlayer.scale.clone(),visible=oldPlayer.visible;
   scene.remove(oldPlayer);
@@ -216,7 +298,7 @@ function updatePlayer(player,keys,dt,yaw,toast){
   player.position.x=THREE.MathUtils.clamp(player.position.x,-105,105);
   player.position.z=THREE.MathUtils.clamp(player.position.z,-105,105);
 
-  const stride=moving?Math.sin(u.runTime*12)*.46:0;
+  if(u.glb){updateGLBAnimation(player,moving,dt);}else{\n  const stride=moving?Math.sin(u.runTime*12)*.46:0;
   if(u.l)u.l.rotation.x=stride;if(u.r)u.r.rotation.x=-stride;
   if(u.calfL)u.calfL.rotation.x=-stride*.55;if(u.calfR)u.calfR.rotation.x=stride*.55;
   if(u.leftArm)u.leftArm.rotation.x=-stride*.68;if(u.rightArm)u.rightArm.rotation.x=stride*.68;
@@ -225,4 +307,4 @@ function updatePlayer(player,keys,dt,yaw,toast){
   if(keys.KeyC&&!u.slide){u.slide=.45;toast('SLIDE!')}
   if(u.slide>0){u.slide-=dt;player.scale.y=THREE.MathUtils.lerp(player.scale.y,.72,.22)}
   else player.scale.y=THREE.MathUtils.lerp(player.scale.y,1,.18);
-}
+  }\n}
