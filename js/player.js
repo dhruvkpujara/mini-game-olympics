@@ -298,13 +298,17 @@ function updatePlayer(player,keys,dt,yaw,toast){
   player.position.x=THREE.MathUtils.clamp(player.position.x,-105,105);
   player.position.z=THREE.MathUtils.clamp(player.position.z,-105,105);
 
-  if(u.glb){updateGLBAnimation(player,moving,dt);}else{\n  const stride=moving?Math.sin(u.runTime*12)*.46:0;
-  if(u.l)u.l.rotation.x=stride;if(u.r)u.r.rotation.x=-stride;
-  if(u.calfL)u.calfL.rotation.x=-stride*.55;if(u.calfR)u.calfR.rotation.x=stride*.55;
-  if(u.leftArm)u.leftArm.rotation.x=-stride*.68;if(u.rightArm)u.rightArm.rotation.x=stride*.68;
-  if(u.foreL)u.foreL.rotation.x=-stride*.5;if(u.foreR)u.foreR.rotation.x=stride*.5;
+  if(u.glb){
+    updateGLBAnimation(player,moving,dt);
+  }else{
+    const stride=moving?Math.sin(u.runTime*12)*.46:0;
+    if(u.l)u.l.rotation.x=stride;if(u.r)u.r.rotation.x=-stride;
+    if(u.calfL)u.calfL.rotation.x=-stride*.55;if(u.calfR)u.calfR.rotation.x=stride*.55;
+    if(u.leftArm)u.leftArm.rotation.x=-stride*.68;if(u.rightArm)u.rightArm.rotation.x=stride*.68;
+    if(u.foreL)u.foreL.rotation.x=-stride*.5;if(u.foreR)u.foreR.rotation.x=stride*.5;
+  }
 
   if(keys.KeyC&&!u.slide){u.slide=.45;toast('SLIDE!')}
   if(u.slide>0){u.slide-=dt;player.scale.y=THREE.MathUtils.lerp(player.scale.y,.72,.22)}
   else player.scale.y=THREE.MathUtils.lerp(player.scale.y,1,.18);
-  }\n}
+}
