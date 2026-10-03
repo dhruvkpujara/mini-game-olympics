@@ -30,7 +30,8 @@
   };
 
   const localFiles=[
-    ['js/player.js?v=17','Loading player...'],
+    ['js/gltf_characters.js?v=1','Loading GLB character models...'],
+    ['js/player.js?v=18','Loading player...'],
     ['js/camera.js?v=3','Loading camera...'],
     ['js/world.js?v=3','Loading Olympic Village...'],
     ['js/sky_sprint.js?v=14','Loading Sky Sprint...'],
@@ -54,9 +55,13 @@
 
       for(let i=0;i<localFiles.length;i++){
         const [src,label]=localFiles[i];
-        boot.dataset.progress=String(15+i*12);
-        setProgress(15+i*12,label,src.split('?')[0]);
+        boot.dataset.progress=String(15+i*10);
+        setProgress(15+i*10,label,src.split('?')[0]);
         await loadScript(src,label);
+        if(src.startsWith('js/gltf_characters.js')){
+          setProgress(22,'Loading GLB character model...','Quaternius humanoid');
+          await window.MGO_GLTF_READY;
+        }
       }
 
       if(!window.MGO_DEBUG)throw new Error('Game engine loaded without its debug interface.');
