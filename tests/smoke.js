@@ -14,11 +14,13 @@ const index=read('index.html'),game=read('game.html'),boot=read('js/boot.js'),ma
 const tournamentSource=read('js/tournament.js'),stateSource=read('js/game_state.js');
 const invariants=[
   ['classic Three CDN loader',boot,'three@0.151.3/build/three.min.js'],
+  ['animation loop uses renderer',main,'renderer.setAnimationLoop(loop)'],
+  ['no manual animation loop',main,'renderer.setAnimationLoop(loop);'],
   ['Three CDN fallback',boot,'unpkg.com/three@0.151.3/build/three.min.js'],
     ['cdnjs Three fallback',boot,'cdnjs.cloudflare.com/ajax/libs/three.js/r151/three.min.js'],
   ['global Three check',boot,'window.THREE'],
-  ['boot cache main v42',boot,'js/main.js?v=42'],
-  ['boot cache player v21',boot,'js/player.js?v=21'],
+  ['boot cache main v43',boot,'js/main.js?v=43'],
+  ['boot cache player v22',boot,'js/player.js?v=22'],
   ['8-player roster',main,"'PANDA','MECHA'"],
   ['three tournament games',main,"['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS']"],
   ['draft state',stateSource,'CHARACTER_SELECT'],
