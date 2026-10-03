@@ -334,7 +334,7 @@ function shootPenalty(e){
     penaltyGoals++;
     showToast('GOAL! ⚽ EXACT TARGET HIT!');
   }else{
-    showToast('SAVED! 🧤 THE GK READ YOUR AIM!');
+    showToast('SAVED! 🧤 GK READ YOUR SHOT!');
   }
 }
 renderer.domElement.addEventListener('click',shootPenalty);
