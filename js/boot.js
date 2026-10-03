@@ -29,49 +29,69 @@
     });
   };
 
-  const waitForThree=()=>new Promise((resolve,reject)=>{
-    if(window.THREE){resolve(window.THREE);return;}
-    const timer=setTimeout(()=>reject(new Error('Three.js module did not become ready.')),10000);
-    window.addEventListener('three-ready',()=>{
-      clearTimeout(timer);
-      if(window.THREE)resolve(window.THREE);
-      else reject(new Error('Three.js module signalled ready without a THREE global.'));
-    },{once:true});
-  });
+  const loadFirstAvailable=(sources,label)=>{
+    let lastError=null;
+    const tryNext=async(i)=>{
+      if(i>=sources.length)throw lastError||new Error('No CDN source available for '+label);
+      try{
+        await loadScript(sources[i],label);
+      }catch(err){
+        lastError=err;
+        console.warn('[Mini Game Olympics] CDN failed:',sources[i],err);
+        await tryNext(i+1);
+      }
+    };
+    return tryNext(0);
+  };
 
   const localFiles=[
-    ['js/gltf_characters.js?v=3','Loading GLB character models...'],
-    ['js/player.js?v=20','Loading player...'],
+    ['js/gltf_characters.js?v=5','Loading GLB character models...'],
+    ['js/player.js?v=21','Loading player...'],
     ['js/camera.js?v=3','Loading camera...'],
     ['js/world.js?v=3','Loading Olympic Village...'],
     ['js/sky_sprint.js?v=14','Loading Sky Sprint...'],
     ['js/ui.js?v=7','Loading interface...'],
     ['js/game_state.js?v=5','Loading game state...'],
     ['js/tournament.js?v=1','Loading tournament system...'],
-    ['js/main.js?v=41','Starting 3D engine...']
+    ['js/main.js?v=42','Starting 3D engine...']
   ];
 
   async function start(){
     try{
-      boot.dataset.progress='5';
-      setProgress(5,'Checking 3D engine...','Loading Three.js module');
-      await waitForThree();
+      boot.dataset.progress='2';
+      setProgress(2,'Loading 3D engine...','Using the browser-compatible Three.js build');
+
+      await loadFirstAvailable([
+        'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js',
+        'https://unpkg.com/three@0.160.0/build/three.min.js'
+      ],'Loading Three.js...');
+
+      if(!window.THREE)throw new Error('Three.js loaded but window.THREE is unavailable.');
+
+      // GLB support is optional. Never block the actual game on a character asset.
+      try{
+        await loadFirstAvailable([
+          'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js',
+          'https://unpkg.com/three@0.160.0/examples/js/loaders/GLTFLoader.js'
+        ],'Preparing GLB loader...');
+        try{
+          await loadFirstAvailable([
+            'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/utils/SkeletonUtils.js',
+            'https://unpkg.com/three@0.160.0/examples/js/utils/SkeletonUtils.js'
+          ],'Preparing character cloning...');
+        }catch(err){
+          console.warn('[Mini Game Olympics] SkeletonUtils unavailable; using basic model cloning.',err);
+        }
+      }catch(err){
+        console.warn('[Mini Game Olympics] GLTFLoader unavailable; procedural athletes will be used.',err);
+      }
 
       for(let i=0;i<localFiles.length;i++){
         const [src,label]=localFiles[i];
-        boot.dataset.progress=String(15+i*10);
-        setProgress(15+i*10,label,src.split('?')[0]);
+        const progress=Math.min(92,22+i*9);
+        boot.dataset.progress=String(progress);
+        setProgress(progress,label,src.split('?')[0]);
         await loadScript(src,label);
-        if(src.startsWith('js/gltf_characters.js')){
-          setProgress(22,'Starting GLB character loader...','3D model loads in the background');
-          const glbReady=window.MGO_GLTF_READY;
-          if(glbReady && typeof glbReady.then==='function'){
-            glbReady.then(result=>{
-              if(result) console.info('[Mini Game Olympics] GLB character ready.');
-              else console.warn('[Mini Game Olympics] GLB unavailable; using procedural fallback.');
-            }).catch(err=>console.warn('[Mini Game Olympics] GLB background load failed:',err));
-          }
-        }
       }
 
       if(!window.MGO_DEBUG)throw new Error('Game engine loaded without its debug interface.');
@@ -82,7 +102,7 @@
       },250);
     }catch(err){
       console.error('[Mini Game Olympics boot]',err);
-      fail(err.message||String(err),'Check your network connection and browser console. The loader stopped before the game was ready.');
+      fail(err.message||String(err),'The 3D engine did not finish loading. Check the browser console if this persists.');
     }
   }
 
