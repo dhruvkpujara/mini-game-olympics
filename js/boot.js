@@ -29,29 +29,33 @@
     });
   };
 
+  const waitForThree=()=>new Promise((resolve,reject)=>{
+    if(window.THREE){resolve(window.THREE);return;}
+    const timer=setTimeout(()=>reject(new Error('Three.js module did not become ready.')),10000);
+    window.addEventListener('three-ready',()=>{
+      clearTimeout(timer);
+      if(window.THREE)resolve(window.THREE);
+      else reject(new Error('Three.js module signalled ready without a THREE global.'));
+    },{once:true});
+  });
+
   const localFiles=[
-    ['js/gltf_characters.js?v=2','Loading GLB character models...'],
-    ['js/player.js?v=19','Loading player...'],
+    ['js/gltf_characters.js?v=3','Loading GLB character models...'],
+    ['js/player.js?v=20','Loading player...'],
     ['js/camera.js?v=3','Loading camera...'],
     ['js/world.js?v=3','Loading Olympic Village...'],
     ['js/sky_sprint.js?v=14','Loading Sky Sprint...'],
     ['js/ui.js?v=7','Loading interface...'],
     ['js/game_state.js?v=5','Loading game state...'],
     ['js/tournament.js?v=1','Loading tournament system...'],
-    ['js/main.js?v=40','Starting 3D engine...']
+    ['js/main.js?v=41','Starting 3D engine...']
   ];
 
   async function start(){
     try{
       boot.dataset.progress='5';
-      setProgress(5,'Checking 3D engine...','Loading Three.js');
-      try{
-        await loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js','Loading Three.js...');
-      }catch(primary){
-        setProgress(12,'Trying backup 3D engine...','Primary CDN unavailable');
-        await loadScript('https://unpkg.com/three@0.160.0/build/three.min.js','Loading backup Three.js...');
-      }
-      if(!window.THREE)throw new Error('Three.js loaded but the THREE global is missing.');
+      setProgress(5,'Checking 3D engine...','Loading Three.js module');
+      await waitForThree();
 
       for(let i=0;i<localFiles.length;i++){
         const [src,label]=localFiles[i];
