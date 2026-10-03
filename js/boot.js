@@ -46,15 +46,15 @@
   };
 
   const localFiles=[
-    ['js/gltf_characters.js?v=6','Loading character system...'],
-    ['js/player.js?v=21','Loading player...'],
-    ['js/camera.js?v=3','Loading camera...'],
-    ['js/world.js?v=3','Loading Olympic Village...'],
-    ['js/sky_sprint.js?v=14','Loading Sky Sprint...'],
-    ['js/ui.js?v=7','Loading interface...'],
-    ['js/game_state.js?v=5','Loading game state...'],
+    ['js/gltf_characters.js?v=7','Loading character system...'],
+    ['js/player.js?v=22','Loading player...'],
+    ['js/camera.js?v=4','Loading camera...'],
+    ['js/world.js?v=4','Loading Olympic Village...'],
+    ['js/sky_sprint.js?v=15','Loading Sky Sprint...'],
+    ['js/ui.js?v=8','Loading interface...'],
+    ['js/game_state.js?v=6','Loading game state...'],
     ['js/tournament.js?v=1','Loading tournament system...'],
-    ['js/main.js?v=42','Starting 3D engine...']
+    ['js/main.js?v=43','Starting 3D engine...']
   ];
 
   async function start(){
