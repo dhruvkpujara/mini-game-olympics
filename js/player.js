@@ -81,11 +81,13 @@ const MGO_CHARACTERS = {
 const MGO_CHARACTER_IDS = Object.keys(MGO_CHARACTERS);
 
 function mergeCharacterPreferences(preferences = {}) {
-  const base = { ...SHARED_CHARACTER_DEFAULTS, ...MGO_CHARACTERS[preferences.base] };
+  const baseCharacter = MGO_CHARACTERS[preferences.base] || {};
+  const base = { ...SHARED_CHARACTER_DEFAULTS, ...baseCharacter };
   const merged = { ...base, ...preferences };
   delete merged.base;
-  delete merged.type;
-  return { ...base, ...merged, type: preferences.type || base.type };
+  // Appearance preferences can change colours/name, but the archetype remains stable.
+  merged.type = base.type;
+  return merged;
 }
 
 function createCharacterMaterials(character) {
