@@ -162,4 +162,3 @@ assert(player.includes("buildCharacterHead"), "Character head builder missing");
 assert(player.includes("updateCharacterAppearance"), "Character appearance update API missing");
 assert(player.includes("characterPreferences"), "Character preferences must be preserved on player state");
 assert(player.includes("const MGO_CHARACTERS ="), "Backward-compatible character catalog missing");
-\n
