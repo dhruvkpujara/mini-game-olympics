@@ -352,7 +352,18 @@ function buildFinalPodium3D(rows){
   const ring=new THREE.Mesh(new THREE.TorusGeometry(12,.25,12,64),gold);ring.rotation.x=Math.PI/2;ring.position.set(0,.38,6);podium3D.add(ring);
   scene.add(podium3D);
 }
-function startNextTournamentEvent(){if(tournament.complete){gameState.set('HUB');document.querySelector('#eventName').textContent='TOURNAMENT COMPLETE';document.querySelector('#venue').innerHTML='<b>OLYMPIC PODIUM</b><span>Final standings across all completed games</span>';setRaceVisible(true);renderFinalPodiumBoard();buildFinalPodium3D(Object.values(tournament.standings).sort((a,b)=>b.points-a.points));return}document.querySelector('#raceBoard').style.display='none';if(podium3D){scene.remove(podium3D);podium3D=null}if(tournament.current==='PENALTY KINGS'){startPenaltyKings();return}document.querySelector('#eventName').textContent=tournament.current;document.querySelector('#venue').innerHTML='<b>OLYMPIC PLAZA</b><span>Round '+tournament.round+' / '+tournament.totalRounds+'</span>';skyCountdown=3;gameState.set('SKY_COUNTDOWN')}
+function clearPenaltyArena(){
+  [penaltyGoal,penaltyKeeper,penaltyBall,penaltyAimPlane,penaltyAimMarker].forEach(o=>{if(o)scene.remove(o)});
+  penaltyGoal=null;penaltyKeeper=null;penaltyBall=null;penaltyAimPlane=null;penaltyAimMarker=null;penaltyAimZones=[];penaltyShot=null;
+}
+function startNextTournamentEvent(){if(tournament.complete){
+  player.visible=false;
+  race.rivals.forEach(r=>r.visible=false);
+  clearPenaltyArena();
+  gameState.set('HUB');
+  document.querySelector('#eventName').textContent='TOURNAMENT COMPLETE';
+  document.querySelector('#venue').innerHTML='<b>OLYMPIC PODIUM</b><span>Final standings across all completed games</span>';
+  setRaceVisible(true);renderFinalPodiumBoard();buildFinalPodium3D(Object.values(tournament.standings).sort((a,b)=>b.points-a.points));return}document.querySelector('#raceBoard').style.display='none';if(podium3D){scene.remove(podium3D);podium3D=null}if(tournament.current==='PENALTY KINGS'){startPenaltyKings();return}document.querySelector('#eventName').textContent=tournament.current;document.querySelector('#venue').innerHTML='<b>OLYMPIC PLAZA</b><span>Round '+tournament.round+' / '+tournament.totalRounds+'</span>';skyCountdown=3;gameState.set('SKY_COUNTDOWN')}
 function setRaceVisible(v){const h=document.querySelector('#raceHud');if(h)h.style.display=v?'block':'none'}
 function clearTargets(){for(const t of targets)scene.remove(t);targets=[];targetMeshes=[]}
 function respawnTarget(g,i){if(!secondGame)return;spawnTarget(g,i);g.userData.respawnTimer=0;g.userData.hit=false}
