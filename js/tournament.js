@@ -1,5 +1,5 @@
 (function(global){
-  const POINTS=[10,7,5,3,2,1];
+  const POINTS=[10,8,6,5,4,3,2,1];
   function create(events=['SKY SPRINT','TARGET MAYHEM']){
     let index=0,total=0,standings={};
     const api={
