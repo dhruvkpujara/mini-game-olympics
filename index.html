@@ -15,6 +15,11 @@
   }
 }
 </script>
+<script type="module">
+  import * as THREE_MODULE from 'three';
+  window.THREE = THREE_MODULE;
+  window.dispatchEvent(new Event('three-ready'));
+</script>
 </head>
 <body>
 <div id="bootScreen">
@@ -78,6 +83,6 @@
   <div id="raceBoard" class="race-board"></div><div id="finalPodium" class="final-podium" aria-live="polite"></div>
 </div>
 
-<script src="js/boot.js?v=15"></script>
+<script src="js/boot.js?v=16"></script>
 </body>
 </html>
