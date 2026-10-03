@@ -250,7 +250,13 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
   box(1.15, .16, .75, 0, 2.45, -.56, mats.accent);
   capsule(.2, .25, 0, 3.45, 0, mats.skin);
 
+  const headStart = objects.length;
   buildCharacterHead(p, mats, c, { sphere, capsule, box, add });
+  const headGroup = new THREE.Group();
+  headGroup.name = 'CharacterHeadControls';
+  const headObjects = objects.slice(headStart);
+  headObjects.forEach(o => headGroup.add(o));
+  p.add(headGroup);
 
   const armL = capsule(.2, .72, -.83, 2.48, 0, mats.jersey);
   const armR = capsule(.2, .72, .83, 2.48, 0, mats.jersey);
@@ -284,12 +290,20 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
   const leftLeg = capsule(.23, .72, -.4, .72, 0, mats.skin);
   const rightLeg = capsule(.23, .72, .4, .72, 0, mats.skin);
 
+  const bodyScale = Number(preferences.bodyScale ?? 1);
+  const heightScale = Number(preferences.heightScale ?? 1);
+  const headScale = Number(preferences.headScale ?? 1);
+  p.scale.set(bodyScale, heightScale, bodyScale);
+  headGroup.scale.setScalar(headScale);
+
   p.userData = {
     vy: 0, ground: true, slide: 0, cool: 0,
     l: leftLeg, r: rightLeg, torso, pelvis, runTime: 0,
     leftArm: armL, rightArm: armR, characterId,
     characterPreferences: { ...preferences },
-    renderParts: objects
+    renderParts: objects,
+    headGroup,
+    editorScales: { bodyScale, heightScale, headScale }
   };
   scene.add(p);
   return p;
