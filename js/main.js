@@ -1,6 +1,20 @@
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xbfe7ff);scene.fog=new THREE.Fog(0xbfe7ff,80,220);
-const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,500);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;document.querySelector('#game').appendChild(renderer.domElement);
+const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,500);
+camera.position.set(0,8.5,30);
+camera.lookAt(0,2.7,5);
+const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance',stencil:false,depth:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.25));
+renderer.setSize(innerWidth,innerHeight,false);
+renderer.setClearColor(0xbfe7ff,1);
+renderer.shadowMap.enabled=false;
+if('outputColorSpace' in renderer && THREE.SRGBColorSpace) renderer.outputColorSpace=THREE.SRGBColorSpace;
+else if('outputEncoding' in renderer && THREE.sRGBEncoding) renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.NoToneMapping;
+const gameRoot=document.querySelector('#game');
+gameRoot.appendChild(renderer.domElement);
+renderer.domElement.style.width='100%';
+renderer.domElement.style.height='100%';
+renderer.domElement.style.display='block';
 scene.add(new THREE.HemisphereLight(0xdff6ff,0x31533a,2.5));const sun=new THREE.DirectionalLight(0xfff2d0,3.5);sun.position.set(60,90,35);sun.castShadow=true;scene.add(sun);
 const world=createWorld(scene),race=createSkySprint(scene);
 race.root.visible=false;
@@ -20,7 +34,7 @@ function buildCharacterShowcase(){
     const pedestal=new THREE.Mesh(new THREE.CylinderGeometry(2.25,2.5,.8,32),new THREE.MeshStandardMaterial({color:i===ids.indexOf(selectedShowcaseId)?0xf5c542:0x31506a,metalness:.35,roughness:.4}));
     pedestal.position.set(positions[i][0],.65,positions[i][1]);pedestal.userData.characterId=id;characterShowcase.add(pedestal);
     const athlete=createPlayer(scene,id);athlete.scale.setScalar(.72);athlete.position.set(positions[i][0],1.05,positions[i][1]);athlete.userData.characterId=id;athlete.userData.characterSelect=true;
-    athlete.userData.showcaseIndex=i;characterShowcaseItems.push(athlete);
+    athlete.userData.showcaseIndex=i;characterShowcaseItems.push(athlete);characterShowcase.add(athlete);
     const beam=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,4,8),new THREE.MeshBasicMaterial({color:MGO_CHARACTERS[id].accent||0xffffff,transparent:true,opacity:.35}));
     beam.position.set(positions[i][0],2.6,positions[i][1]);characterShowcase.add(beam);
   });
@@ -470,7 +484,7 @@ function endGameBreak(){
   showToast(gameBreakNext+' STARTING!');
 }
 function loop(){
-  requestAnimationFrame(loop);
+
   const dt=Math.min(clock.getDelta(),.05);
   elapsed+=dt;
   gameState.tick(dt);
@@ -599,5 +613,17 @@ const debugError=document.createElement('pre');
 debugError.id='debugError';
 debugError.style='display:none;position:fixed;left:12px;right:12px;bottom:12px;max-height:40vh;overflow:auto;background:#2b1111;color:#fff;padding:12px;border:1px solid #f55;border-radius:10px;z-index:9999;font:12px monospace;white-space:pre-wrap';
 document.body.appendChild(debugError);
-loop()
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+renderer.setAnimationLoop(loop);
+addEventListener('resize',()=>{
+  const canvas=renderer.domElement;
+  const width=Math.max(1,canvas.clientWidth||innerWidth);
+  const height=Math.max(1,canvas.clientHeight||innerHeight);
+  camera.aspect=width/height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width,height,false);
+});
+window.addEventListener('webglcontextlost',e=>{
+  e.preventDefault();
+  const d=document.querySelector('#debugError');
+  if(d){d.style.display='block';d.textContent='WEBGL CONTEXT LOST\\nReload the page to restore the 3D engine.';}
+});
