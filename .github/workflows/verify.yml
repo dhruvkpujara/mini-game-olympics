@@ -12,4 +12,4 @@ jobs:
         with:
           node-version: 20
       - name: Syntax and game smoke test
-        run: node tests/smoke.mjs
+        run: node tests/smoke.js
