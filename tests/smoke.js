@@ -13,11 +13,15 @@ for(const p of required.filter(p=>p.endsWith('.js')))execFileSync(process.execPa
 const index=read('index.html'),boot=read('js/boot.js'),main=read('js/main.js');
 const tournamentSource=read('js/tournament.js'),stateSource=read('js/game_state.js');
 const invariants=[
+  ['classic Three CDN loader',boot,'three@0.160.0/build/three.min.js'],
+  ['Three CDN fallback',boot,'unpkg.com/three@0.160.0/build/three.min.js'],
+  ['classic GLTF loader',boot,'examples/js/loaders/GLTFLoader.js'],
+  ['global Three check',boot,'window.THREE'],
   ['index import map',index,'three/addons/'],
   ['shared module THREE',index,'window.THREE = THREE_MODULE'],
   ['boot waits for THREE',boot,'waitForThree'],
-  ['boot cache main v41',boot,'js/main.js?v=41'],
-  ['boot cache player v20',boot,'js/player.js?v=20'],
+  ['boot cache main v42',boot,'js/main.js?v=42'],
+  ['boot cache player v21',boot,'js/player.js?v=21'],
   ['8-player roster',main,"'PANDA','MECHA'"],
   ['three tournament games',main,"['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS']"],
   ['draft state',stateSource,'CHARACTER_SELECT'],
@@ -30,7 +34,7 @@ const invariants=[
   ['target rival colors',main,'0xe05aa6,0x31d9ef']
 ];
 for(const [name,src,needle] of invariants)if(!src.includes(needle))throw new Error('Missing invariant: '+name);
-if(/three\.min\.js/.test(boot))throw new Error('Boot still loads a second classic Three.js build.');
+if(/importmap|three\.module\.js|three\/addons\//.test(index+boot+read('js/gltf_characters.js')))throw new Error('Module-based Three.js startup path is still present.');
 
 const ctx={console};ctx.window=ctx;vm.createContext(ctx);
 vm.runInContext(tournamentSource,ctx,{filename:'js/tournament.js'});
