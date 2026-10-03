@@ -23,6 +23,7 @@
       const s=document.createElement('script');
       currentScript=src;
       s.src=src;
+      s.async=false;
       s.onload=()=>resolve();
       s.onerror=()=>reject(new Error('Failed to load '+src));
       document.body.appendChild(s);
@@ -32,12 +33,12 @@
   const loadFirstAvailable=(sources,label)=>{
     let lastError=null;
     const tryNext=async(i)=>{
-      if(i>=sources.length)throw lastError||new Error('No CDN source available for '+label);
+      if(i>=sources.length)throw lastError||new Error('No available source for '+label);
       try{
         await loadScript(sources[i],label);
       }catch(err){
         lastError=err;
-        console.warn('[Mini Game Olympics] CDN failed:',sources[i],err);
+        console.warn('[Mini Game Olympics] source failed:',sources[i],err);
         await tryNext(i+1);
       }
     };
@@ -45,7 +46,7 @@
   };
 
   const localFiles=[
-    ['js/gltf_characters.js?v=5','Loading GLB character models...'],
+    ['js/gltf_characters.js?v=6','Loading character system...'],
     ['js/player.js?v=21','Loading player...'],
     ['js/camera.js?v=3','Loading camera...'],
     ['js/world.js?v=3','Loading Olympic Village...'],
@@ -59,36 +60,21 @@
   async function start(){
     try{
       boot.dataset.progress='2';
-      setProgress(2,'Loading 3D engine...','Using the browser-compatible Three.js build');
+      setProgress(2,'Checking 3D engine...','Loading standalone Three.js build');
 
+      // r151 keeps the classic global build that does not require ES modules.
       await loadFirstAvailable([
-        'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js',
-        'https://unpkg.com/three@0.160.0/build/three.min.js'
-      ],'Loading Three.js...');
+        'https://cdn.jsdelivr.net/npm/three@0.151.3/build/three.min.js',
+        'https://unpkg.com/three@0.151.3/build/three.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/three.js/r151/three.min.js'
+      ],'Loading standalone Three.js...');
 
       if(!window.THREE)throw new Error('Three.js loaded but window.THREE is unavailable.');
-
-      // GLB support is optional. Never block the actual game on a character asset.
-      try{
-        await loadFirstAvailable([
-          'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js',
-          'https://unpkg.com/three@0.160.0/examples/js/loaders/GLTFLoader.js'
-        ],'Preparing GLB loader...');
-        try{
-          await loadFirstAvailable([
-            'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/utils/SkeletonUtils.js',
-            'https://unpkg.com/three@0.160.0/examples/js/utils/SkeletonUtils.js'
-          ],'Preparing character cloning...');
-        }catch(err){
-          console.warn('[Mini Game Olympics] SkeletonUtils unavailable; using basic model cloning.',err);
-        }
-      }catch(err){
-        console.warn('[Mini Game Olympics] GLTFLoader unavailable; procedural athletes will be used.',err);
-      }
+      console.log('[Mini Game Olympics] Three.js ready:',window.THREE.REVISION);
 
       for(let i=0;i<localFiles.length;i++){
         const [src,label]=localFiles[i];
-        const progress=Math.min(92,22+i*9);
+        const progress=Math.min(92,15+i*9);
         boot.dataset.progress=String(progress);
         setProgress(progress,label,src.split('?')[0]);
         await loadScript(src,label);
@@ -102,7 +88,7 @@
       },250);
     }catch(err){
       console.error('[Mini Game Olympics boot]',err);
-      fail(err.message||String(err),'The 3D engine did not finish loading. Check the browser console if this persists.');
+      fail(err.message||String(err),'The startup loader failed. The page will stay here instead of silently hanging.');
     }
   }
 
