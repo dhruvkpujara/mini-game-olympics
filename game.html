@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#081522">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="description" content="Mini Game Olympics — a fast 3D sports mini-game tournament.">
+<title>Mini Game Olympics — Fresh Launcher</title>
+<link rel="stylesheet" href="css/style.css">
+<script>
+  // Classic Three.js is loaded by boot.js for broad browser compatibility.
+</script>
+</head>
+<body>
+<div id="bootScreen">
+  <div class="boot-card">
+    <div class="boot-mark">OLYMPIC VILLAGE · 3D PARTY GAMES</div>
+    <h1 class="boot-title">MINI GAME OLYMPICS</h1>
+    <p class="boot-subtitle">Preparing your arena experience…</p>
+    <div class="boot-rings" aria-hidden="true">
+      <span class="boot-ring"></span><span class="boot-ring"></span><span class="boot-ring"></span>
+      <span class="boot-ring"></span><span class="boot-ring"></span>
+    </div>
+    <div class="boot-loader"><div id="bootProgress"></div></div>
+    <div id="bootStatus">Starting...</div>
+    <p id="bootDetail">Checking your browser and loading the 3D engine</p>
+    <div class="boot-hint">PC controls: WASD · Shift · Space · C · Mouse</div>
+  </div>
+</div>
+
+<div id="game"></div>
+
+<div class="hud">
+  <div class="top"><b>MINI GAME OLYMPICS</b><span>ATHLETES 8 / 8</span></div>
+  <div id="event" class="pill"><small>NEXT EVENT</small><strong id="eventName">SKY SPRINT</strong><span>Starts in <b id="timer">5</b>s</span></div>
+  <div id="venue" class="pill"><b>Olympic Plaza</b><span>Explore the village</span></div>
+  <div id="controls" class="pill">A = LEFT · D = RIGHT · W/S = MOVE · SHIFT = SPRINT · SPACE = JUMP · C = SLIDE · MOUSE = CAMERA</div>
+  <div id="toast"></div>
+  <div id="gameBreak" class="game-break" aria-live="assertive" aria-hidden="true">
+    <div class="break-card">
+      <div class="break-kicker">MINI GAME OLYMPICS · INTERMISSION</div>
+      <div class="break-title" id="breakTitle">NEXT GAME</div>
+      <div class="break-subtitle" id="breakSubtitle">Get ready for the next challenge</div>
+      <div class="break-timer" id="breakTimer">6</div>
+      <div class="break-next">NEXT UP <strong id="breakNextGame">TARGET MAYHEM</strong></div>
+      <div class="break-message">Catch your breath · check the controls · get ready</div>
+    </div>
+  </div>
+  <div id="selectedCharacterLabel" class="selected-character">Character: Blue Speedster</div>
+  <div id="characterSelect3D" class="character-select-3d" aria-live="polite">
+    <div class="draft-top"><span class="draft-kicker">ULTRA OLYMPICS · ATHLETE DRAFT</span><strong>CHOOSE YOUR 3D ATHLETE</strong><span class="draft-timer" id="characterPickTimer">18s</span></div>
+    <div class="draft-bottom"><span>CLICK A 3D CHARACTER</span><b id="characterPickName">Blue Speedster</b><small>8 players · no duplicate characters · auto-starts when the timer ends</small></div>
+  </div>
+  <div id="characterSelect" class="character-select" aria-hidden="true">
+    <div class="character-select-card">
+      <div class="character-select-kicker">CHOOSE YOUR ATHLETE</div>
+      <h2>Pick a unique character</h2>
+      <p>Each player must use a different character.</p>
+      <div class="character-grid">
+        <button class="character-card" data-character="mario" onclick="chooseCharacter('mario')"><span class="avatar avatar-mario">FH</span><b>Fire Hero</b><small>platform-hero inspired</small></button>
+        <button class="character-card" data-character="duck" onclick="chooseCharacter('duck')"><span class="avatar avatar-duck">DC</span><b>Duck Captain</b><small>sailor-duck inspired</small></button>
+        <button class="character-card" data-character="bheem" onclick="chooseCharacter('bheem')"><span class="avatar avatar-bheem">PK</span><b>Power Kid</b><small>Indian-cartoon inspired</small></button>
+        <button class="character-card" data-character="raju" onclick="chooseCharacter('raju')"><span class="avatar avatar-raju">SK</span><b>Super Kid</b><small>superhero-kid inspired</small></button>
+        <button class="character-card" data-character="ninja" onclick="chooseCharacter('ninja')"><span class="avatar avatar-ninja">NR</span><b>Ninja Runner</b><small>anime-ninja inspired</small></button>
+        <button class="character-card" data-character="sonic" onclick="chooseCharacter('sonic')"><span class="avatar avatar-sonic">BS</span><b>Blue Speedster</b><small>speed-hero inspired</small></button>
+        <button class="character-card" data-character="panda" onclick="chooseCharacter('panda')"><span class="avatar avatar-panda">PB</span><b>Panda Brawler</b><small>martial-arts panda inspired</small></button>
+        <button class="character-card" data-character="robot" onclick="chooseCharacter('robot')"><span class="avatar avatar-robot">MR</span><b>Mecha Racer</b><small>cartoon robot racer</small></button>
+      </div>
+      <button class="confirm-character" onclick="confirmCharacter()">CONFIRM CHARACTER → START</button>
+    </div>
+  </div>
+  <div id="raceHud" class="race-hud"><b>SKY SPRINT</b><span id="raceState">Get ready...</span><strong id="raceTime">0.00s</strong><small id="raceCheckpoint">CHECKPOINT 0 / 8</small><small id="raceStats">COINS 0 · BOOST READY</small></div>
+  <div id="raceBoard" class="race-board"></div><div id="finalPodium" class="final-podium" aria-live="polite"></div>
+</div>
+
+<script src="js/boot.js?v=19"></script>
+</body>
+</html>
