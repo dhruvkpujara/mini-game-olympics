@@ -30,8 +30,8 @@
   };
 
   const localFiles=[
-    ['js/gltf_characters.js?v=1','Loading GLB character models...'],
-    ['js/player.js?v=18','Loading player...'],
+    ['js/gltf_characters.js?v=2','Loading GLB character models...'],
+    ['js/player.js?v=19','Loading player...'],
     ['js/camera.js?v=3','Loading camera...'],
     ['js/world.js?v=3','Loading Olympic Village...'],
     ['js/sky_sprint.js?v=14','Loading Sky Sprint...'],
