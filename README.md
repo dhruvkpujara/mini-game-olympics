@@ -12,7 +12,7 @@ A fast, social 3D multiplayer mini-game tournament built with **Three.js**, with
 - 🏆 Tournament progression and podium
 - ⚡ Skill-based scoring
 - 🎨 Cosmetic progression only
-- 🌐 Multiplayer with Socket.io
+- 🤖 AI-controlled rivals in the current single-browser prototype
 - 💻 PC-first, mobile later
 - 😂 Fast, social and chaotic
 
@@ -164,7 +164,7 @@ Network synchronization will eventually cover:
 
 ## 🛠️ Local Development
 
-The current prototype is static and can be served from any simple local web server.
+The current prototype is a static single-browser game and can be served from any simple local web server.
 
 Example:
 
@@ -236,6 +236,14 @@ The repository Issues tab is the development task board. Each major bug or featu
 
 Keep issues small enough to implement and test independently.
 
+## 📚 Continuation Documentation
+
+If you are continuing this project in another chat or coding session, read these first:
+
+- [`docs/PROJECT_HANDOFF.md`](docs/PROJECT_HANDOFF.md) — current baseline, design decisions, lessons and safe continuation order.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — module responsibilities, state machine, data flow and multiplayer architecture.
+- [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — testing, debugging, performance and Git practices.
+
 ## 🚦 Startup & Loading
 
 The app now uses a dedicated boot loader instead of immediately executing every game script. The loader checks Three.js, falls back to a second CDN if the primary one fails, loads the game modules in dependency order, shows progress, and only reveals the game after the engine is ready.
@@ -244,7 +252,7 @@ For startup problems, do not guess from a frozen screen: the loader stops with a
 
 ## 🧪 Testing & Regression Safety
 
-See [`TESTING.md`](TESTING.md) for automated smoke checks and manual browser test cases. GitHub Actions runs `tests/smoke.mjs` on every push and pull request. The stability rule is simple: **test the existing game before adding the next feature**.
+Testing guidance is documented in [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md). The exact automated test entrypoint must match the file that exists in the current baseline before changing workflows. The stability rule is simple: **test the existing game before adding the next feature**.
 
 ## 🤝 Development Philosophy
 
