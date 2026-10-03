@@ -277,11 +277,7 @@ function updatePenaltyKings(dt){
     if(penaltyResultTimer>2){
       const rows=[
         {name:'YOU',score:penaltyGoals},
-        {name:'BOLT',score:2},
-        {name:'NOVA',score:3},
-        {name:'DASH',score:1},
-        {name:'ROCKET',score:2},
-        {name:'FLASH',score:4}
+        ...race.rivals.map((_,i)=>({name:PLAYER_NAMES[i+1],score:penaltyRivalGoals[i]??0}))
       ].sort((a,b)=>b.score-a.score);
       tournament.addEventResult(rows);
       penaltyReady=false;
@@ -381,7 +377,7 @@ function spawnTarget(g,i){
 // Rivals are active participants too.
 function setupTargetArenaPlayers(){
   targetArenaPlayers=[{name:'YOU',score:0,hits:0,color:0x2458d6,skill:1}];
-  race.rivals.forEach((r,i)=>targetArenaPlayers.push({name:['BOLT','NOVA','DASH','ROCKET','FLASH','PANDA','MECHA'][i],score:0,hits:0,color:[0xe74c3c,0x16a085,0x8e44ad,0xf39c12,0x34495e][i],skill:[.74,.82,.91,.78,.88,.86,.80][i]}));
+  race.rivals.forEach((r,i)=>targetArenaPlayers.push({name:['BOLT','NOVA','DASH','ROCKET','FLASH','PANDA','MECHA'][i],score:0,hits:0,color:[0xe74c3c,0x16a085,0x8e44ad,0xf39c12,0x34495e,0xe05aa6,0x31d9ef][i],skill:[.74,.82,.91,.78,.88,.86,.80][i]}));
   race.rivals.forEach(r=>{r.visible=true;r.position.set((Math.random()*2-1)*14,.1,39+Math.random()*4);r.rotation.y=Math.PI});
 }
 function startTargetMayhem(){
