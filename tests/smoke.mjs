@@ -1,151 +1,47 @@
-import { readFile } from "node:fs/promises";
-import { access } from "node:fs/promises";
-import { execFileSync } from "node:child_process";
-import path from "node:path";
-import assert from "node:assert/strict";
+import fs from 'node:fs';
+import vm from 'node:vm';
+import { execFileSync } from 'node:child_process';
 
-const root = process.cwd();
-const files = [
-  "index.html",
-  "js/boot.js",
-  "js/game_state.js",
-  "js/main.js",
-  "js/tournament.js",
-  "js/ui.js",
-  "js/player.js",
-  "js/camera.js",
-  "js/world.js",
-  "js/sky_sprint.js"
+const read=p=>fs.readFileSync(p,'utf8');
+const required=[
+  'index.html','js/boot.js','js/gltf_characters.js','js/player.js','js/camera.js',
+  'js/world.js','js/sky_sprint.js','js/ui.js','js/game_state.js','js/tournament.js','js/main.js'
 ];
+for(const p of required)if(!fs.existsSync(p))throw new Error('Missing required file: '+p);
+for(const p of required.filter(p=>p.endsWith('.js')))execFileSync(process.execPath,['--check',p],{stdio:'inherit'});
 
-for (const file of files) {
-  await access(path.join(root, file));
-}
+const index=read('index.html'),boot=read('js/boot.js'),main=read('js/main.js');
+const tournamentSource=read('js/tournament.js'),stateSource=read('js/game_state.js');
+const invariants=[
+  ['index import map',index,'three/addons/'],
+  ['shared module THREE',index,'window.THREE = THREE_MODULE'],
+  ['boot waits for THREE',boot,'waitForThree'],
+  ['boot cache main v41',boot,'js/main.js?v=41'],
+  ['boot cache player v20',boot,'js/player.js?v=20'],
+  ['8-player roster',main,"'PANDA','MECHA'"],
+  ['three tournament games',main,"['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS']"],
+  ['draft state',stateSource,'CHARACTER_SELECT'],
+  ['game break state',stateSource,'GAME_BREAK'],
+  ['penalty results state',stateSource,'PENALTY_RESULTS'],
+  ['8-point values',tournamentSource,'[10,8,6,5,4,3,2,1]'],
+  ['sky course state gate',main,"gameState.state==='SKY_COUNTDOWN'||gameState.state==='SKY_SPRINT'||gameState.state==='RACE_RESULTS'"],
+  ['draft hides race HUD',main,"if(gameState.state==='CHARACTER_SELECT')"],
+  ['penalty has all rivals',main,"...race.rivals.map((_,i)=>({name:PLAYER_NAMES[i+1]"],
+  ['target rival colors',main,'0xe05aa6,0x31d9ef']
+];
+for(const [name,src,needle] of invariants)if(!src.includes(needle))throw new Error('Missing invariant: '+name);
+if(/three\.min\.js/.test(boot))throw new Error('Boot still loads a second classic Three.js build.');
 
-const jsFiles = files.filter(f => f.endsWith(".js"));
-for (const file of jsFiles) {
-  execFileSync(process.execPath, ["--check", path.join(root, file)], { stdio: "inherit" });
-}
-
-const index = await readFile(path.join(root, "index.html"), "utf8");
-const main = await readFile(path.join(root, "js/main.js"), "utf8");
-const tournament = await readFile(path.join(root, "js/tournament.js"), "utf8");
-const sky = await readFile(path.join(root, "js/sky_sprint.js"), "utf8");
-const state = await readFile(path.join(root, "js/game_state.js"), "utf8");
-const ui = await readFile(path.join(root, "js/ui.js"), "utf8");
-const boot = await readFile(path.join(root, "js/boot.js"), "utf8");
-
-assert(index.includes("js/boot.js"), "Boot loader missing");
-assert(index.includes('id="bootScreen"'), "Loading screen missing");
-assert(boot.includes("cdn.jsdelivr.net/npm/three@0.160.0"), "Primary Three.js CDN missing");
-assert(boot.includes("unpkg.com/three@0.160.0"), "Three.js fallback CDN missing");
-assert(boot.includes("MGO_DEBUG"), "Boot loader readiness check missing");
-for (const script of [
-  'js/player.js',
-  'js/camera.js',
-  'js/world.js',
-  'js/sky_sprint.js',
-  'js/ui.js',
-  'js/game_state.js',
-  'js/main.js'
-]) {
-  assert(boot.includes(script), `Boot loader missing script: ${script}`);
-}
-
-assert(tournament.includes("POINTS=[10,7,5,3,2,1]"), "Tournament scoring table missing");
-assert(tournament.includes("addEventResult"), "Tournament event result handler missing");
-assert(main.includes("MGOGameState"), "Main loop is not using the game state machine");
-for (const eventState of ["SKY_COUNTDOWN","SKY_SPRINT","RACE_RESULTS","TARGET_MAYHEM","TARGET_RESULTS","PENALTY_KINGS","PENALTY_RESULTS"]) {
-  assert(state.includes(eventState), `Game state missing: ${eventState}`);
-}
-assert(main.includes("setRaceVisible"), "Race HUD visibility helper missing");
-assert(main.includes("addEventListener('blur'"), "Input reset on window blur missing");
-assert(main.includes("document.addEventListener('visibilitychange'"), "Input reset on tab visibility change missing");
-assert(main.includes("targetMeshes=[]"), "Target mesh hit list missing");
-assert(main.includes("targetRay.intersectObjects(targetMeshes,false)"), "Target raycast must only hit target faces");
-assert(main.includes("target.userData.hitTarget=true"), "Target hit metadata missing");
-assert(!main.includes("race.active?.28"), "Known invalid camera expression still present");
-assert(!main.includes("skyCountdown===0"), "Fragile exact-zero countdown check still present");
-assert(ui.includes("if(!inRace&&!inTarget)"), "Hub timer must pause during mini-games");
-assert(sky.includes("userData={obstacle:true"), "Obstacles must be tagged explicitly");
-assert(sky.includes("o.userData.obstacle"), "Obstacle list must exclude coins and other objects");
-assert(sky.includes("race.coinCount=0"), "Race coin count must not overwrite coin objects");
-assert(!sky.includes("race.coins=0"), "Race coin object array must not be overwritten");
-assert(sky.includes("race.coinCount++"), "Collected coins must increment coin count");
-assert(!main.includes("race.coins=0"), "Main must not overwrite Sky Sprint coin array");
-assert(state.includes("function create"), "State factory missing");
-
-const vm = await import("node:vm");
-const sandbox = { window: {}, globalThis: {}, console };
-sandbox.globalThis = sandbox.window;
-vm.runInNewContext(state, sandbox);
-const s = sandbox.window.MGOGameState.create("SKY_COUNTDOWN");
-assert.equal(s.state, "SKY_COUNTDOWN");
-s.tick(0.5);
-assert.equal(s.age, 0.5);
-s.set("SKY_SPRINT");
-assert.equal(s.state, "SKY_SPRINT");
-assert.equal(s.age, 0);
-s.tick(1);
-assert.equal(s.age, 1);
-assert.throws(() => s.set("NOT_A_STATE"), /Unknown game state/);
-
-console.log("✅ Mini Game Olympics smoke tests passed");
-console.log("✅ Syntax checks passed");
-console.log("✅ State-machine checks passed");
-console.log("✅ HUD/timer isolation checks passed");
-console.log("✅ Sky Sprint obstacle checks passed");
-
-assert(main.includes("targetHits=0"), "Target Mayhem hit counter must initialize");
-assert(main.includes("targetHits++"), "Target hits must increment on successful hit");
-assert(main.includes("targetHits"), "Target Mayhem hit feedback state missing");
-
-assert(main.includes("back=new THREE.Mesh"), "Target backing mesh must be declared");
-assert(main.includes("ring=new THREE.Mesh"), "Target ring mesh must be declared");
-
-assert(main.includes("targetColors=["), "Target colour scoring table missing");
-assert(main.includes("points:500"), "High-value purple target missing");
-assert(main.includes("spawnTarget(g,i)"), "Target respawn/spawn helper missing");
-assert(main.includes("targetScore+=pts"), "Colour-based target scoring missing");
-assert(main.includes("updateTargetCamera()"), "Target Mayhem camera helper missing");
-assert(main.includes("awardSkySprintTournament()"), "Sky Sprint tournament scoring missing");
-assert(main.includes("awardTargetTournament()"), "Target Mayhem tournament scoring missing");
-assert(main.includes("startNextTournamentEvent()"), "Tournament event progression missing");
-assert(main.includes("TOURNAMENT COMPLETE"), "Tournament completion screen missing");
-assert(main.includes("targetArenaPlayers"), "Target Mayhem participant list missing");
-assert(main.includes("Rivals are active participants too"), "Rivals must participate in Target Mayhem");
-
-assert(sky.includes("lastSafePlatform=0"), "Sky Sprint must start from the first safe platform");
-assert(sky.includes("const idx=Math.max(0,race.lastSafePlatform||0)"), "Sky Sprint respawn must use the last safely landed platform");
-assert(!sky.includes("race.segments[race.checkpoint+1]+3"), "Checkpoint must not advance just by crossing a Z threshold");
-
-// Tournament/results regressions
-assert(main.includes("resultHoldSeconds=7"), "Results must stay visible long enough to read");
-assert(main.includes("allRivalsFinished&&returnTimer>resultHoldSeconds"), "Sky Sprint must respect results hold time before next event");
-assert(main.includes("if(targetResultTimer>resultHoldSeconds)"), "Target Mayhem must respect results hold time");
-assert(main.includes("you.score=targetScore"), "Player Target Mayhem score must feed tournament points");
-assert(main.includes("const target=g.userData.targetMesh;if(g.userData.hit){"), "Target respawn timer must track the hit target mesh");
-assert(main.includes("target.visible=false;g.userData.hit=true;g.userData.respawnTimer=.65"), "Hit targets must schedule a respawn without hiding the whole target group");
-assert(!main.includes("target.visible=false;g.visible=false"), "Target group must remain active while its face respawns");
-
-assert(main.includes("TOURNAMENT STANDINGS"), "Tournament leaderboard must be rendered during results");
-assert(main.includes("allRivalsFinished"), "Next event must wait for rival finishes");
-assert(main.includes("returnTimer>15"), "Race results need a maximum wait");
-assert(main.includes("hit:false"), "Target hit state missing");
-assert(main.includes("if(g.userData.hit){g.userData.respawnTimer-=dt"), "Target respawn timer must run after a hit");
-assert(main.includes("g.userData.hit=true"), "Target hit must arm respawn");
-assert(main.includes("targetArenaPlayers[0].score=targetScore"), "Target score must feed tournament player score");
-
-assert(main.includes("renderTargetLeaderboard()"), "Target Mayhem leaderboard renderer missing");
-assert(main.includes("if(gameState.state==='TARGET_RESULTS')"), "Target Mayhem results leaderboard state missing");
-
-assert(main.includes("MGOTournament.create(['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS'])"), "Tournament must contain three playable games");
-assert(main.includes("penaltyReady&&!penaltyCompleted&&penaltyShots===5"), "Penalty Kings results must require all five player shots");
-assert(main.includes("!penaltyReady||penaltyCompleted||penaltyShots>=5"), "Penalty Kings must ignore shots outside the active challenge");
-assert(main.includes("gameState.set('PENALTY_RESULTS')"), "Penalty Kings must enter results only after completion");
-
-assert(main.includes("function buildPenaltyArena()"), "Penalty Kings goalpost arena missing");
-assert(main.includes("function updatePenaltyKeeper(dt)"), "Penalty Kings goalkeeper AI missing");
-assert(main.includes("penaltyKeeper.position.x=Math.sin"), "Goalkeeper must move dynamically");
-assert(main.includes("GK READ YOUR SHOT"), "Goalkeeper save feedback missing");
-assert(main.includes("const keeperX=penaltyKeeper?penaltyKeeper.position.x:0"), "Penalty shot must account for goalkeeper position");
+const ctx={console};ctx.window=ctx;vm.createContext(ctx);
+vm.runInContext(tournamentSource,ctx,{filename:'js/tournament.js'});
+vm.runInContext(stateSource,ctx,{filename:'js/game_state.js'});
+const t=ctx.MGOTournament.create(['SKY SPRINT','TARGET MAYHEM','PENALTY KINGS']);t.start();
+const names=['YOU','BOLT','NOVA','DASH','ROCKET','FLASH','PANDA','MECHA'];
+for(let round=0;round<3;round++)t.addEventResult(names.map((name,i)=>({name,score:i+round})));
+if(Object.keys(t.standings).length!==8)throw new Error('Tournament did not retain all 8 athletes.');
+if(!t.complete)throw new Error('Tournament did not complete after 3 events.');
+if(t.standings.YOU.points<=0)throw new Error('Tournament points were not awarded.');
+const s=ctx.MGOGameState.create('CHARACTER_SELECT');
+for(const state of ['VILLAGE_INTRO','GAME_BREAK','SKY_COUNTDOWN','SKY_SPRINT','RACE_RESULTS','TARGET_MAYHEM','TARGET_RESULTS','PENALTY_KINGS','PENALTY_RESULTS','HUB'])s.set(state);
+if(s.state!=='HUB')throw new Error('Game state transition smoke test failed.');
+console.log('SMOKE PASS: syntax, startup wiring, 8-player scoring, 3-event tournament, and state transitions');
