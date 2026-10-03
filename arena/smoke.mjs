@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
+const js=fs.readFileSync(new URL('./main.js',import.meta.url),'utf8');
+const css=fs.readFileSync(new URL('./style.css',import.meta.url),'utf8');
+for(const token of ['NEON ARENA','RIFT//8','PLAY ARENA','CREATE ROOM','JOIN ROOM','LOADOUT','characters','RIFT LOBBY','LAUNCH MATCH','gameHud','TAG FFA','CLICK TAG','Q PULSE']) assert.ok(html.includes(token),`missing ${token}`);
+for(const token of ['maxPlayers:8','roundSeconds:180','respawnSeconds:3','tagRunner','tagPulse','pulseAbility','dash','botsUpdate','tagsUpdate','ROUND COMPLETE','selectedChar','show(el)','launchBtn','active:false','startMatch','replayBtn','finalScore']) assert.ok(js.includes(token),`missing ${token}`);
+for(const token of ['.crosshair','.character-grid','.lobby-layout','.hud']) assert.ok(css.includes(token),`missing ${token}`);
+assert.ok(!/Pulse Blaster|Nova Rocket|bombs|firearms|weapon/i.test(js+html), 'weaponized combat tokens found');
+assert.ok(js.includes('s.active&& !s.roundOver') || js.includes('s.active&&!s.roundOver'),'round loop must wait for launch');
+assert.ok(html.includes('id="results"')&&html.includes('id="replayBtn"'),'results/replay UI missing');
+console.log('arena smoke: PASS');
