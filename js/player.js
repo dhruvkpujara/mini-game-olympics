@@ -354,7 +354,6 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
     headGroup,
     editorScales: { bodyScale, heightScale, headScale },
     baseScaleY: heightScale
-  }
   };
   scene.add(p);
   return p;
