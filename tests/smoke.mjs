@@ -15,7 +15,8 @@ const files = [
   "js/player.js",
   "js/camera.js",
   "js/world.js",
-  "js/sky_sprint.js"
+  "js/sky_sprint.js",
+  "js/character-lab.js"
 ];
 
 for (const file of files) {
@@ -162,3 +163,28 @@ assert(player.includes("buildCharacterHead"), "Character head builder missing");
 assert(player.includes("updateCharacterAppearance"), "Character appearance update API missing");
 assert(player.includes("characterPreferences"), "Character preferences must be preserved on player state");
 assert(player.includes("const MGO_CHARACTERS ="), "Backward-compatible character catalog missing");
+assert(player.includes("function buildEditorHair"), "Character hairstyle builder missing");
+assert(player.includes("hairStyle"), "Character hairstyle preference missing");
+assert(player.includes("messy"), "Messy hairstyle option missing");
+assert(player.includes("fringe"), "Fringe hairstyle option missing");
+assert(player.includes("curly"), "Curly hairstyle option missing");
+assert(player.includes("function buildEditorClothing"), "Character clothing builder missing");
+assert(player.includes("bodyType"), "Body build preference missing");
+assert(player.includes("bodyBuild"), "Body build geometry state missing");
+assert(player.includes("skinHands"), "Separate hand skin material missing");
+assert(player.includes("skinLegs"), "Separate leg skin material missing");
+assert(player.includes("skinBody"), "Separate body skin material missing");
+
+const characterLab = await readFile(path.join(root, "character-lab.html"), "utf8");
+const characterLabJs = await readFile(path.join(root, "js/character-lab.js"), "utf8");
+assert(characterLab.includes('id="hairStyle"'), "Character Lab hairstyle control missing");
+assert(characterLab.includes('id="clothing"'), "Character Lab clothing control missing");
+assert(characterLab.includes('id="bodyType"'), "Character Lab body build control missing");
+assert(characterLab.includes('id="skinHands"'), "Character Lab hand skin control missing");
+assert(characterLab.includes('id="skinLegs"'), "Character Lab leg skin control missing");
+assert(characterLab.includes('class="skin-preset"'), "Character Lab skin presets missing");
+assert(characterLabJs.includes("bodyType:$('bodyType').value"), "Character Lab must save body build");
+assert(characterLabJs.includes("hairStyle:$('hairStyle').value"), "Character Lab must save hairstyle");
+assert(characterLabJs.includes("clothing:$('clothing').value"), "Character Lab must save clothing style");
+assert(characterLabJs.includes("skinHands:hex('skinHands')"), "Character Lab must save hand skin");
+assert(characterLabJs.includes("skinLegs:hex('skinLegs')"), "Character Lab must save leg skin");
