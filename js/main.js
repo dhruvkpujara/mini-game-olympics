@@ -5,7 +5,8 @@ scene.add(new THREE.HemisphereLight(0xdff6ff,0x31533a,2.5));const sun=new THREE.
 const world=createWorld(scene),race=createSkySprint(scene);
 function loadActiveTournamentCharacter(){
   try{
-    const raw=localStorage.getItem('mgo-tournament-character');
+    const hash=location.hash.startsWith('#character=')?decodeURIComponent(location.hash.slice('#character='.length)):'';
+    const raw=hash||localStorage.getItem('mgo-tournament-character');
     if(!raw)return null;
     const data=JSON.parse(raw);
     if(data?.type!=='mgo-character'||!data.preferences)return null;
@@ -39,7 +40,7 @@ function buildCharacterShowcase(){
   ids.forEach((id,i)=>{
     const pedestal=new THREE.Mesh(new THREE.CylinderGeometry(2.25,2.5,.8,32),new THREE.MeshStandardMaterial({color:i===ids.indexOf(selectedShowcaseId)?0xf5c542:0x31506a,metalness:.35,roughness:.4}));
     pedestal.position.set(positions[i][0],.65,positions[i][1]);pedestal.userData.characterId=id;characterShowcase.add(pedestal);
-    const athlete=createPlayer(scene,id);athlete.scale.setScalar(.72);athlete.position.set(positions[i][0],1.05,positions[i][1]);athlete.userData.characterId=id;athlete.userData.characterSelect=true;
+    const athlete=createPlayer(scene,id,customTournamentActive&&id===activeCharacterBase?{...activeCharacterPrefs}:{});athlete.scale.setScalar(.72);athlete.position.set(positions[i][0],1.05,positions[i][1]);athlete.userData.characterId=id;athlete.userData.characterSelect=true;
     athlete.userData.showcaseIndex=i;characterShowcaseItems.push(athlete);
     const beam=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,4,8),new THREE.MeshBasicMaterial({color:MGO_CHARACTERS[id].accent||0xffffff,transparent:true,opacity:.35}));
     beam.position.set(positions[i][0],2.6,positions[i][1]);characterShowcase.add(beam);
@@ -373,7 +374,7 @@ function buildFinalPodium3D(rows){
   xs.forEach((x,i)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(5,heights[i],5),i===0?mats[0]:mats[i]);b.position.set(x,heights[i]/2,6);b.castShadow=true;podium3D.add(b)});
   rows.slice(0,3).forEach((row,i)=>{
     const id=participantCharacterIds[PLAYER_NAMES.indexOf(row.name)]||'sonic';
-    const a=createPlayer(scene,id);a.scale.setScalar(.78);a.position.set(xs[i],heights[i]+.05,6);a.userData.podium=true;a.userData.characterId=id;podium3D.add(a);
+    const isYou=row.name==='YOU';const a=createPlayer(scene,isYou?activeCharacterBase:id,isYou?{...activeCharacterPrefs}:{});a.scale.setScalar(.78);a.position.set(xs[i],heights[i]+.05,6);a.userData.podium=true;a.userData.characterId=id;podium3D.add(a);
   });
   const stage=new THREE.Mesh(new THREE.CylinderGeometry(16,16,.35,64),new THREE.MeshStandardMaterial({color:0x0b1724,metalness:.2,roughness:.45}));stage.position.set(0,.18,6);podium3D.add(stage);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(12,.25,12,64),gold);ring.rotation.x=Math.PI/2;ring.position.set(0,.38,6);podium3D.add(ring);
