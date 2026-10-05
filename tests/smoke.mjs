@@ -188,3 +188,18 @@ assert(characterLabJs.includes("hairStyle:$('hairStyle').value"), "Character Lab
 assert(characterLabJs.includes("clothing:$('clothing').value"), "Character Lab must save clothing style");
 assert(characterLabJs.includes("skinHands:hex('skinHands')"), "Character Lab must save hand skin");
 assert(characterLabJs.includes("skinLegs:hex('skinLegs')"), "Character Lab must save leg skin");
+assert(player.includes("function buildEditorFaceDetails"), "Character face detail builder missing");
+assert(player.includes("faceShape"), "Character face shape preference missing");
+assert(player.includes("eyeStyle"), "Character eye style preference missing");
+assert(player.includes("browStyle"), "Character eyebrow preference missing");
+assert(player.includes("facialHair"), "Character facial hair preference missing");
+assert(player.includes("sleeveStyle"), "Character sleeve preference missing");
+assert(player.includes("bottomStyle"), "Character bottom clothing preference missing");
+assert(player.includes("outfitPattern"), "Character outfit pattern preference missing");
+for (const id of ["faceShape","eyeStyle","browStyle","facialHair","sleeveStyle","bottomStyle","outfitPattern"]) {
+  assert(characterLab.includes(`id="${id}"`), `Character Lab control missing: ${id}`);
+}
+assert(characterLabJs.includes("faceShape:$(\'faceShape\').value"), "Character Lab must save face shape");
+assert(characterLabJs.includes("eyeStyle:$(\'eyeStyle\').value"), "Character Lab must save eye style");
+assert(characterLabJs.includes("facialHair:$(\'facialHair\').value"), "Character Lab must save facial hair");
+assert(characterLabJs.includes("outfitPattern:$(\'outfitPattern\').value"), "Character Lab must save outfit pattern");
