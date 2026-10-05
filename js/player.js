@@ -463,8 +463,8 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
   buildEditorClothing(p, mats, c, { box, capsule, add });
   const sleeveStyle = c.sleeveStyle || 'short';
   if (sleeveStyle === 'long') {
-    capsule(.21 * limbBuild, .55, -.84 * shoulderWidth, 2.16, 0, mats.dark);
-    capsule(.21 * limbBuild, .55, .84 * shoulderWidth, 2.16, 0, mats.dark);
+    capsule(.21 * limbBuild, .55, -.84 * Number(preferences.shoulderWidth ?? 1), 2.16, 0, mats.dark);
+    capsule(.21 * limbBuild, .55, .84 * Number(preferences.shoulderWidth ?? 1), 2.16, 0, mats.dark);
   } else if (sleeveStyle === 'trim') {
     for (const x of [-.84, .84]) box(.42, .12, .48, x, 2.62, .02, mats.accent);
   }
