@@ -234,6 +234,20 @@ function buildCharacterHead(p, mats, c, helpers) {
     const beak = sphere(.27, 0, 4.02, .78, mats.orange, 16, 10);
     beak.scale.set(1, .55, 1.15);
     box(.42, .08, .08, 0, 3.93, .99, mats.orange);
+  } else if (c.type === 'sonic' && (!c.hairStyle || c.hairStyle === 'classic')) {
+    sphere(.79, 0, 4.18, 0, mats.hair, 24, 18);
+    for (let i = 0; i < 7; i++) {
+      const q = capsule(.16, .62, -.62 + i * .21, 4.48, -.02, mats.hair);
+      q.rotation.z = (i - 3) * .28; q.rotation.x = -.3;
+    }
+    sphere(.52, 0, 4.02, .52, mats.skinBody, 20, 14);
+    for (const x of [-.26, .26]) {
+      sphere(.18, x, 4.30, .72, mats.white, 16, 12);
+      sphere(.07, x, 4.30, .86, mats.black, 12, 10);
+    }
+    sphere(.14, 0, 4.08, .88, mats.black, 14, 10);
+    const smile = new THREE.Mesh(new THREE.TorusGeometry(.16, .035, 8, 16, Math.PI), mats.mouth);
+    smile.position.set(0, 3.92, .79); smile.rotation.x = Math.PI / 2; add(smile);
   } else {
     sphere(.78, 0, 4.15, 0, mats.skinBody, 24, 18);
     sphere(.16, -.76, 4.18, 0, mats.skinBody, 14, 10);
@@ -295,9 +309,6 @@ function buildEditorClothing(p, mats, c, helpers) {
 function createPlayer(scene, characterId = 'sonic', preferences = {}) {
   const base = MGO_CHARACTERS[characterId] || MGO_CHARACTERS.sonic;
   const c = mergeCharacterPreferences({ ...preferences, base: characterId, type: base.type });
-  c.skinBody = preferences.skinBody ?? preferences.skin ?? c.skin;
-  c.skinHands = preferences.skinHands ?? c.skinBody;
-  c.skinLegs = preferences.skinLegs ?? c.skinBody;
   c.skinBody = preferences.skinBody ?? preferences.skin ?? c.skin;
   c.skinHands = preferences.skinHands ?? c.skinBody;
   c.skinLegs = preferences.skinLegs ?? c.skinBody;
