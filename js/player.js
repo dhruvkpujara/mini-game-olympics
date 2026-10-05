@@ -259,7 +259,8 @@ function buildEditorFaceDetails(p, mats, c, helpers) {
     chin.scale.set(1.0, .65, .3);
   }
 }
-\nfunction buildCharacterHead(p, mats, c, helpers) {
+
+function buildCharacterHead(p, mats, c, helpers) {
   const { sphere, capsule, box, add } = helpers;
 
   if (c.type === 'panda') {
