@@ -91,8 +91,10 @@ function mergeCharacterPreferences(preferences = {}) {
 }
 
 function createCharacterMaterials(character) {
+  const glow = Number(character.glow ?? 0);
+  const glowColor = new THREE.Color(character.glowColor ?? character.accent ?? 0x38d9ff);
   return {
-    jersey: new THREE.MeshStandardMaterial({ color: character.jersey, roughness: .5 }),
+    jersey: new THREE.MeshStandardMaterial({ color: character.jersey, roughness: .5, emissive: glow ? glowColor : 0x000000, emissiveIntensity: glow }),
     dark: new THREE.MeshStandardMaterial({ color: character.dark, roughness: .58 }),
     skin: new THREE.MeshStandardMaterial({ color: character.skin, roughness: .78 }),
     hair: new THREE.MeshStandardMaterial({ color: character.hair, roughness: .88 }),
@@ -104,6 +106,40 @@ function createCharacterMaterials(character) {
     mouth: new THREE.MeshStandardMaterial({ color: 0x5b2020, roughness: .55 }),
     orange: new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: .45 })
   };
+}
+
+function buildEditorAccessories(p, headGroup, mats, c, helpers) {
+  const { box, sphere, add } = helpers;
+  const accessory = c.accessory || 'none';
+  if (accessory === 'visor') {
+    const v = box(1.12, .12, .48, 0, 4.48, .58, mats.accent); v.rotation.x = -.08;
+  } else if (accessory === 'headband') {
+    box(1.12, .12, .08, 0, 4.43, .72, mats.accent);
+  } else if (accessory === 'glasses') {
+    for (const x of [-.27, .27]) {
+      const g = sphere(.18, x, 4.28, .76, mats.black, 16, 10); g.scale.set(1.15, .55, .22);
+    }
+    box(.20, .045, .04, 0, 4.28, .79, mats.black);
+  } else if (accessory === 'crown') {
+    const crown = new THREE.Group();
+    for (const x of [-.42, -.21, 0, .21, .42]) {
+      const pike = new THREE.Mesh(new THREE.ConeGeometry(.10, .38, 6), mats.accent);
+      pike.position.set(x, 4.82 + (Math.abs(x) * -.12), 0); crown.add(pike);
+    }
+    const band = new THREE.Mesh(new THREE.TorusGeometry(.58, .08, 8, 24), mats.accent);
+    band.position.y = 4.66; band.rotation.x = Math.PI / 2; crown.add(band); add(crown);
+  }
+  if (c.jerseyNumber) {
+    const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
+    const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,256,256);
+    ctx.fillStyle = '#ffffff'; ctx.font = '900 150px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(String(c.jerseyNumber).slice(0,3), 128, 132);
+    const tex = new THREE.CanvasTexture(canvas); tex.colorSpace = THREE.SRGBColorSpace;
+    const mat = new THREE.MeshBasicMaterial({map: tex, transparent:true});
+    const badge = new THREE.Mesh(new THREE.PlaneGeometry(.48,.48), mat);
+    badge.position.set(0,2.53,.71); p.add(badge); p.userData.jerseyNumberMesh = badge;
+  }
+}
 }
 
 function buildCharacterHead(p, mats, c, helpers) {
@@ -250,7 +286,13 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
   box(1.15, .16, .75, 0, 2.45, -.56, mats.accent);
   capsule(.2, .25, 0, 3.45, 0, mats.skin);
 
+  const headStart = objects.length;
   buildCharacterHead(p, mats, c, { sphere, capsule, box, add });
+  const headGroup = new THREE.Group();
+  headGroup.name = 'CharacterHeadControls';
+  const headObjects = objects.slice(headStart);
+  headObjects.forEach(o => headGroup.add(o));
+  p.add(headGroup);
 
   const armL = capsule(.2, .72, -.83, 2.48, 0, mats.jersey);
   const armR = capsule(.2, .72, .83, 2.48, 0, mats.jersey);
@@ -284,12 +326,36 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
   const leftLeg = capsule(.23, .72, -.4, .72, 0, mats.skin);
   const rightLeg = capsule(.23, .72, .4, .72, 0, mats.skin);
 
+  buildEditorAccessories(p, headGroup, mats, c, { sphere, box, add });
+  const armWidth = Number(preferences.armWidth ?? 1);
+  const armLength = Number(preferences.armLength ?? 1);
+  const legWidth = Number(preferences.legWidth ?? 1);
+  const legLength = Number(preferences.legLength ?? 1);
+  const shoulderWidth = Number(preferences.shoulderWidth ?? 1);
+  armL.scale.set(armWidth, armLength, armWidth); armR.scale.set(armWidth, armLength, armWidth);
+  leftLeg.scale.set(legWidth, legLength, legWidth); rightLeg.scale.set(legWidth, legLength, legWidth);
+  armL.position.x = -.83 * shoulderWidth; armR.position.x = .83 * shoulderWidth;
+  const shoeStyle = preferences.shoeStyle || 'runner';
+  const shoeScale = shoeStyle === 'chunky' ? 1.18 : shoeStyle === 'light' ? .86 : 1;
+  const shoeMeshes = objects.filter(o => o.material === mats.shoe);
+  shoeMeshes.forEach(o => o.scale.set(shoeScale, 1, shoeStyle === 'chunky' ? 1.08 : 1));
+
+  const bodyScale = Number(preferences.bodyScale ?? 1);
+  const heightScale = Number(preferences.heightScale ?? 1);
+  const headScale = Number(preferences.headScale ?? 1);
+  p.scale.set(bodyScale, heightScale, bodyScale);
+  headGroup.scale.setScalar(headScale);
+
   p.userData = {
     vy: 0, ground: true, slide: 0, cool: 0,
     l: leftLeg, r: rightLeg, torso, pelvis, runTime: 0,
     leftArm: armL, rightArm: armR, characterId,
     characterPreferences: { ...preferences },
-    renderParts: objects
+    renderParts: objects,
+    headGroup,
+    editorScales: { bodyScale, heightScale, headScale },
+    baseScaleY: heightScale
+  }
   };
   scene.add(p);
   return p;
@@ -320,7 +386,9 @@ function replacePlayerCharacter(scene, oldPlayer, characterId = 'sonic', prefere
   const next = createPlayer(scene, characterId, preferences);
   next.position.copy(pos);
   next.rotation.copy(rot);
-  next.scale.copy(scale);
+  if (preferences.bodyScale !== undefined || preferences.heightScale !== undefined) {
+    next.scale.set(Number(preferences.bodyScale ?? 1), Number(preferences.heightScale ?? 1), Number(preferences.bodyScale ?? 1));
+  } else next.scale.copy(scale);
   next.visible = visible;
   next.userData = { ...next.userData, ...oldUserData, characterId, characterPreferences: { ...preferences } };
   return next;
@@ -371,6 +439,7 @@ function updatePlayer(player, keys, dt, yaw, toast) {
   if (u.leftArm) u.leftArm.rotation.x = -stride * .72;
   if (u.rightArm) u.rightArm.rotation.x = stride * .72;
   if (keys.KeyC && !u.slide) { u.slide = .45; toast('SLIDE!'); }
-  if (u.slide > 0) { u.slide -= dt; player.scale.y = THREE.MathUtils.lerp(player.scale.y, .72, .22); }
-  else player.scale.y = THREE.MathUtils.lerp(player.scale.y, 1, .18);
+  const baseScaleY = Number(u.baseScaleY ?? u.editorScales?.heightScale ?? 1);
+  if (u.slide > 0) { u.slide -= dt; player.scale.y = THREE.MathUtils.lerp(player.scale.y, baseScaleY * .72, .22); }
+  else player.scale.y = THREE.MathUtils.lerp(player.scale.y, baseScaleY, .18);
 }
