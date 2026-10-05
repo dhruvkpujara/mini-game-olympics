@@ -210,7 +210,56 @@ function buildEditorHair(p, mats, c, helpers) {
   }
 }
 
-function buildCharacterHead(p, mats, c, helpers) {
+function buildEditorFaceDetails(p, mats, c, helpers) {
+  const { sphere, box, add } = helpers;
+  const eyeStyle = c.eyeStyle || 'classic';
+  const browStyle = c.browStyle || 'natural';
+  const facialHair = c.facialHair || 'none';
+  const eyeMat = mats.white, pupilMat = mats.black;
+  if (eyeStyle === 'wide') {
+    for (const x of [-.27, .27]) {
+      sphere(.15, x, 4.26, .72, eyeMat, 16, 12);
+      sphere(.065, x, 4.26, .84, pupilMat, 12, 10);
+    }
+  } else if (eyeStyle === 'round') {
+    for (const x of [-.27, .27]) {
+      sphere(.18, x, 4.26, .72, eyeMat, 16, 12);
+      sphere(.055, x, 4.26, .86, pupilMat, 12, 10);
+    }
+  } else if (eyeStyle === 'focused') {
+    for (const x of [-.27, .27]) {
+      const eye = sphere(.13, x, 4.26, .72, eyeMat, 16, 12);
+      eye.scale.set(1.2, .62, .8);
+      sphere(.055, x, 4.26, .84, pupilMat, 12, 10);
+    }
+  } else {
+    for (const x of [-.27, .27]) {
+      const eye = sphere(.13, x, 4.26, .70, eyeMat, 16, 12);
+      eye.scale.set(1.15, .72, .8);
+      sphere(.06, x, 4.26, .82, pupilMat, 12, 10);
+    }
+  }
+  if (browStyle !== 'none') {
+    for (const x of [-.27, .27]) {
+      const brow = box(.28, .045, .055, x, 4.43, .70, mats.hair);
+      brow.rotation.z = browStyle === 'expressive' ? (x < 0 ? -.18 : .18) : (x < 0 ? .06 : -.06);
+    }
+  }
+  if (facialHair === 'stubble') {
+    const chin = sphere(.25, 0, 3.99, .69, mats.hair, 16, 10);
+    chin.scale.set(1.25, .42, .3);
+  } else if (facialHair === 'moustache') {
+    for (const x of [-.10, .10]) {
+      const m = sphere(.13, x, 4.05, .76, mats.hair, 12, 8);
+      m.scale.set(1.2, .55, .3);
+    }
+  } else if (facialHair === 'goatee') {
+    sphere(.10, 0, 4.02, .76, mats.hair, 12, 8);
+    const chin = sphere(.18, 0, 3.91, .69, mats.hair, 12, 8);
+    chin.scale.set(1.0, .65, .3);
+  }
+}
+\nfunction buildCharacterHead(p, mats, c, helpers) {
   const { sphere, capsule, box, add } = helpers;
 
   if (c.type === 'panda') {
@@ -266,7 +315,11 @@ function buildCharacterHead(p, mats, c, helpers) {
     const smile = new THREE.Mesh(new THREE.TorusGeometry(.16, .035, 8, 16, Math.PI), mats.mouth);
     smile.position.set(0, 3.92, .79); smile.rotation.x = Math.PI / 2; add(smile);
   } else {
-    sphere(.78, 0, 4.15, 0, mats.skinBody, 24, 18);
+    const faceShape = c.faceShape || 'oval';
+    const head = sphere(.78, 0, 4.15, 0, mats.skinBody, 24, 18);
+    if (faceShape === 'round') head.scale.set(1.10, 1.02, 1.0);
+    else if (faceShape === 'square') head.scale.set(1.10, .94, 1.0);
+    else if (faceShape === 'angular') head.scale.set(.96, 1.06, .94);
     sphere(.16, -.76, 4.18, 0, mats.skinBody, 14, 10);
     sphere(.16, .76, 4.18, 0, mats.skinBody, 14, 10);
     const customHair = c.hairStyle && c.hairStyle !== 'classic';
@@ -286,10 +339,7 @@ function buildCharacterHead(p, mats, c, helpers) {
         sphere(.23, 0, 4.78, .02, mats.jersey, 14, 10);
       }
     }
-    for (const x of [-.27, .27]) {
-      sphere(.13, x, 4.25, .70, mats.white, 16, 12);
-      sphere(.062, x, 4.25, .82, mats.black, 12, 10);
-    }
+    buildEditorFaceDetails(p, mats, c, { sphere, box, add });
     sphere(.07, 0, 4.05, .75, mats.skinBody, 12, 8);
     const smile = new THREE.Mesh(new THREE.TorusGeometry(.17, .035, 8, 16, Math.PI), mats.mouth);
     smile.position.set(0, 3.91, .71); smile.rotation.x = Math.PI / 2; add(smile);
@@ -411,6 +461,30 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
   const leftLeg = capsule(.23 * limbBuild, .72, -.4 * buildScale, .72, 0, mats.skinLegs);
   const rightLeg = capsule(.23 * limbBuild, .72, .4 * buildScale, .72, 0, mats.skinLegs);
   buildEditorClothing(p, mats, c, { box, capsule, add });
+  const sleeveStyle = c.sleeveStyle || 'short';
+  if (sleeveStyle === 'long') {
+    capsule(.21 * limbBuild, .55, -.84 * shoulderWidth, 2.16, 0, mats.dark);
+    capsule(.21 * limbBuild, .55, .84 * shoulderWidth, 2.16, 0, mats.dark);
+  } else if (sleeveStyle === 'trim') {
+    for (const x of [-.84, .84]) box(.42, .12, .48, x, 2.62, .02, mats.accent);
+  }
+  const bottomStyle = c.bottomStyle || 'shorts';
+  if (bottomStyle === 'pants') {
+    capsule(.25 * limbBuild, .72, -.4 * buildScale, .72, 0, mats.dark);
+    capsule(.25 * limbBuild, .72, .4 * buildScale, .72, 0, mats.dark);
+  } else if (bottomStyle === 'shorts') {
+    box(.48 * limbBuild, .48, .72, -.40 * buildScale, 1.02, 0, mats.dark);
+    box(.48 * limbBuild, .48, .72, .40 * buildScale, 1.02, 0, mats.dark);
+  }
+  const pattern = c.outfitPattern || 'solid';
+  if (pattern === 'stripe') {
+    box(1.16 * buildScale, .13, .08, 0, 2.48, .70, mats.accent);
+  } else if (pattern === 'double-stripe') {
+    box(1.16 * buildScale, .08, .08, 0, 2.39, .70, mats.accent);
+    box(1.16 * buildScale, .08, .08, 0, 2.57, .70, mats.accent);
+  } else if (pattern === 'panel') {
+    box(.18, .86, .06, 0, 2.50, .72, mats.accent);
+  }
 
   buildEditorAccessories(p, headGroup, mats, c, { sphere, box, add });
   const armWidth = Number(preferences.armWidth ?? 1);
@@ -444,6 +518,13 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
     bodyType: bodyBuild,
     hairStyle: preferences.hairStyle || 'classic',
     clothing: preferences.clothing || 'sport',
+    faceShape: preferences.faceShape || 'oval',
+    eyeStyle: preferences.eyeStyle || 'classic',
+    browStyle: preferences.browStyle || 'natural',
+    facialHair: preferences.facialHair || 'none',
+    sleeveStyle: preferences.sleeveStyle || 'short',
+    bottomStyle: preferences.bottomStyle || 'shorts',
+    outfitPattern: preferences.outfitPattern || 'solid',
     skinZones: {
       body: preferences.skinBody ?? preferences.skin ?? c.skin,
       hands: preferences.skinHands ?? preferences.skinBody ?? preferences.skin ?? c.skin,
