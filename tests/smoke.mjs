@@ -203,3 +203,13 @@ assert(characterLabJs.includes("faceShape:$(\'faceShape\').value"), "Character L
 assert(characterLabJs.includes("eyeStyle:$(\'eyeStyle\').value"), "Character Lab must save eye style");
 assert(characterLabJs.includes("facialHair:$(\'facialHair\').value"), "Character Lab must save facial hair");
 assert(characterLabJs.includes("outfitPattern:$(\'outfitPattern\').value"), "Character Lab must save outfit pattern");
+assert(characterLab.includes('id="importButton"'), "Character Lab JSON import button missing");
+assert(characterLab.includes('id="useTournament"'), "Character Lab tournament activation button missing");
+assert(characterLab.includes('id="characterFile"'), "Character Lab character file input missing");
+assert(characterLabJs.includes("function applyCharacterData"), "Character JSON import handler missing");
+assert(characterLabJs.includes("localStorage.setItem('mgo-tournament-character'"), "Tournament character storage missing");
+assert(characterLabJs.includes("location.href='index.html'"), "Tournament activation must return to the game");
+assert(main.includes("localStorage.getItem('mgo-tournament-character')"), "Main game must load active custom character");
+assert(main.includes("activeCharacterPrefs"), "Main game must pass custom preferences into the player");
+assert(main.includes("activeCharacterBase"), "Main game must preserve the custom base character");
+
