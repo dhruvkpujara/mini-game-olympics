@@ -97,6 +97,9 @@ function createCharacterMaterials(character) {
     jersey: new THREE.MeshStandardMaterial({ color: character.jersey, roughness: .5, emissive: glow ? glowColor : 0x000000, emissiveIntensity: glow }),
     dark: new THREE.MeshStandardMaterial({ color: character.dark, roughness: .58 }),
     skin: new THREE.MeshStandardMaterial({ color: character.skin, roughness: .78 }),
+    skinBody: new THREE.MeshStandardMaterial({ color: character.skinBody ?? character.skin, roughness: .78 }),
+    skinHands: new THREE.MeshStandardMaterial({ color: character.skinHands ?? character.skinBody ?? character.skin, roughness: .8 }),
+    skinLegs: new THREE.MeshStandardMaterial({ color: character.skinLegs ?? character.skinBody ?? character.skin, roughness: .8 }),
     hair: new THREE.MeshStandardMaterial({ color: character.hair, roughness: .88 }),
     white: new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: .35 }),
     black: new THREE.MeshStandardMaterial({ color: 0x101827, roughness: .55 }),
@@ -141,6 +144,55 @@ function buildEditorAccessories(p, headGroup, mats, c, helpers) {
   }
 }
 
+function buildEditorHair(p, mats, c, helpers) {
+  const { sphere, capsule, add } = helpers;
+  const style = c.hairStyle || 'classic';
+  if (style === 'buzz') {
+    const cap = sphere(.79, 0, 4.49, -.02, mats.hair, 24, 16);
+    cap.scale.set(1, .42, 1);
+  } else if (style === 'messy') {
+    sphere(.79, 0, 4.46, -.02, mats.hair, 24, 16).scale.set(1, .58, 1);
+    for (let i = 0; i < 9; i++) {
+      const a = (i / 8) * Math.PI - Math.PI / 2;
+      const q = capsule(.12, .42 + (i % 2) * .08, Math.cos(a) * .63, 4.55 + Math.sin(a) * .18, Math.sin(a) * .18, mats.hair);
+      q.rotation.z = (i - 4) * .18;
+      q.rotation.x = -.35;
+    }
+  } else if (style === 'fringe') {
+    sphere(.79, 0, 4.47, -.02, mats.hair, 24, 16).scale.set(1, .58, 1);
+    for (let i = 0; i < 7; i++) {
+      const x = -.54 + i * .18;
+      const q = capsule(.11, .42, x, 4.34 + Math.abs(x) * .10, .52, mats.hair);
+      q.rotation.z = (x * -.35);
+      q.rotation.x = -.55;
+    }
+  } else if (style === 'curly') {
+    for (let i = 0; i < 15; i++) {
+      const a = (i / 15) * Math.PI * 2;
+      const r = i < 9 ? .58 : .38;
+      sphere(.17, Math.cos(a) * r, 4.46 + (i % 3) * .13, Math.sin(a) * .24 - .02, mats.hair, 12, 8);
+    }
+    sphere(.62, 0, 4.48, -.02, mats.hair, 20, 12).scale.set(1, .5, .85);
+  } else if (style === 'spiky') {
+    sphere(.78, 0, 4.45, -.02, mats.hair, 24, 16).scale.set(1, .55, 1);
+    for (let i = 0; i < 9; i++) {
+      const x = -.68 + i * .17;
+      const q = capsule(.12, .62, x, 4.70 + (i % 2) * .10, -.02, mats.hair);
+      q.rotation.z = (i - 4) * .30;
+      q.rotation.x = -.25;
+    }
+  } else if (style === 'long') {
+    sphere(.79, 0, 4.47, -.02, mats.hair, 24, 16).scale.set(1, .58, 1);
+    for (const x of [-.62, .62]) {
+      const q = capsule(.14, 1.05, x, 4.05, -.02, mats.hair);
+      q.rotation.z = x < 0 ? .08 : -.08;
+    }
+  } else {
+    const cap = sphere(.76, 0, 4.49, -.02, mats.hair, 24, 16);
+    cap.scale.set(1, .55, 1);
+  }
+}
+
 function buildCharacterHead(p, mats, c, helpers) {
   const { sphere, capsule, box, add } = helpers;
 
@@ -182,64 +234,73 @@ function buildCharacterHead(p, mats, c, helpers) {
     const beak = sphere(.27, 0, 4.02, .78, mats.orange, 16, 10);
     beak.scale.set(1, .55, 1.15);
     box(.42, .08, .08, 0, 3.93, .99, mats.orange);
-  } else if (c.type === 'sonic') {
-    sphere(.79, 0, 4.18, 0, mats.hair, 24, 18);
-    for (let i = 0; i < 7; i++) {
-      const q = capsule(.16, .62, -.62 + i * .21, 4.48, -.02, mats.hair);
-      q.rotation.z = (i - 3) * .28; q.rotation.x = -.3;
-    }
-    sphere(.52, 0, 4.02, .52, mats.skin, 20, 14);
-    for (const x of [-.26, .26]) {
-      sphere(.18, x, 4.30, .72, mats.white, 16, 12);
-      sphere(.07, x, 4.30, .86, mats.black, 12, 10);
-    }
-    sphere(.14, 0, 4.08, .88, mats.black, 14, 10);
-    const smile = new THREE.Mesh(new THREE.TorusGeometry(.16, .035, 8, 16, Math.PI), mats.mouth);
-    smile.position.set(0, 3.92, .79); smile.rotation.x = Math.PI / 2; add(smile);
   } else {
-    sphere(.78, 0, 4.15, 0, mats.skin, 24, 18);
-    sphere(.16, -.76, 4.18, 0, mats.skin, 14, 10);
-    sphere(.16, .76, 4.18, 0, mats.skin, 14, 10);
-    if (c.type === 'ninja') {
+    sphere(.78, 0, 4.15, 0, mats.skinBody, 24, 18);
+    sphere(.16, -.76, 4.18, 0, mats.skinBody, 14, 10);
+    sphere(.16, .76, 4.18, 0, mats.skinBody, 14, 10);
+    const customHair = c.hairStyle && c.hairStyle !== 'classic';
+    if (customHair) {
+      buildEditorHair(p, mats, c, { sphere, capsule, add });
+    } else if (c.type === 'ninja') {
       for (let i = 0; i < 9; i++) {
         const q = capsule(.13, .62, -.58 + i * .145, 4.57, -.02, mats.hair);
         q.rotation.z = (i - 4) * .22; q.rotation.x = -.25;
       }
       box(1.05, .18, .18, 0, 4.48, .62, mats.dark);
       box(.55, .12, .08, 0, 4.48, .75, mats.accent);
-      for (const x of [-.27, .27]) {
-        sphere(.13, x, 4.23, .70, mats.white, 16, 12);
-        sphere(.06, x, 4.23, .82, mats.black, 12, 10);
-      }
-      for (const x of [-.36, .36]) for (let j = 0; j < 3; j++) {
-        box(.16, .025, .025, x, 4.02 + j * .07, .72, mats.dark);
-      }
     } else {
-      const cap = sphere(.76, 0, 4.49, -.02, mats.hair, 24, 16);
-      cap.scale.set(1, .55, 1);
+      buildEditorHair(p, mats, { ...c, hairStyle: 'classic' }, { sphere, capsule, add });
       if (c.type === 'cap') {
         box(1.0, .12, .45, 0, 4.39, .58, mats.jersey);
         sphere(.23, 0, 4.78, .02, mats.jersey, 14, 10);
       }
-      for (const x of [-.27, .27]) {
-        sphere(.13, x, 4.25, .70, mats.white, 16, 12);
-        sphere(.062, x, 4.25, .82, mats.black, 12, 10);
-      }
-      if (c.type === 'cap') {
-        capsule(.13, .30, 0, 4.02, .74, mats.skin);
-        for (const x of [-.22, .22]) capsule(.075, .25, x, 3.86, .70, mats.hair);
-      } else {
-        sphere(.07, 0, 4.05, .75, mats.skin, 12, 8);
-      }
-      const smile = new THREE.Mesh(new THREE.TorusGeometry(.17, .035, 8, 16, Math.PI), mats.mouth);
-      smile.position.set(0, 3.91, .71); smile.rotation.x = Math.PI / 2; add(smile);
     }
+    for (const x of [-.27, .27]) {
+      sphere(.13, x, 4.25, .70, mats.white, 16, 12);
+      sphere(.062, x, 4.25, .82, mats.black, 12, 10);
+    }
+    sphere(.07, 0, 4.05, .75, mats.skinBody, 12, 8);
+    const smile = new THREE.Mesh(new THREE.TorusGeometry(.17, .035, 8, 16, Math.PI), mats.mouth);
+    smile.position.set(0, 3.91, .71); smile.rotation.x = Math.PI / 2; add(smile);
   }
+}
+
+function buildEditorClothing(p, mats, c, helpers) {
+  const { box, capsule, add } = helpers;
+  const style = c.clothing || 'sport';
+  if (style === 'hoodie') {
+    const hood = new THREE.Mesh(new THREE.TorusGeometry(.52, .18, 10, 28, Math.PI * 1.65), mats.dark);
+    hood.position.set(0, 3.0, -.05); hood.rotation.x = Math.PI / 2; add(hood);
+    box(1.18, .72, .72, 0, 2.45, 0, mats.dark);
+    box(.62, .26, .08, 0, 2.02, .40, mats.black);
+  } else if (style === 'jacket') {
+    box(1.18, 1.12, .76, 0, 2.48, 0, mats.dark);
+    box(.10, 1.0, .80, 0, 2.48, .43, mats.accent);
+  } else if (style === 'tee') {
+    box(1.18, .98, .74, 0, 2.5, 0, mats.jersey);
+  } else if (style === 'tracksuit') {
+    box(1.20, 1.05, .76, 0, 2.5, 0, mats.dark);
+    for (const x of [-.4, .4]) {
+      const pant = capsule(.25, .55, x, .78, 0, mats.dark);
+      pant.scale.set(.9, 1.05, .9);
+    }
+  } else {
+    box(1.20, .96, .74, 0, 2.5, 0, mats.jersey);
+  }
+  // A simple collar makes the outfit read as clothing instead of a coloured body.
+  const collar = new THREE.Mesh(new THREE.TorusGeometry(.35, .06, 8, 24), mats.accent);
+  collar.position.set(0, 3.02, 0); collar.rotation.x = Math.PI / 2; add(collar);
 }
 
 function createPlayer(scene, characterId = 'sonic', preferences = {}) {
   const base = MGO_CHARACTERS[characterId] || MGO_CHARACTERS.sonic;
   const c = mergeCharacterPreferences({ ...preferences, base: characterId, type: base.type });
+  c.skinBody = preferences.skinBody ?? preferences.skin ?? c.skin;
+  c.skinHands = preferences.skinHands ?? c.skinBody;
+  c.skinLegs = preferences.skinLegs ?? c.skinBody;
+  c.skinBody = preferences.skinBody ?? preferences.skin ?? c.skin;
+  c.skinHands = preferences.skinHands ?? c.skinBody;
+  c.skinLegs = preferences.skinLegs ?? c.skinBody;
 
   const p = new THREE.Group();
   p.name = 'CartoonAthlete_' + characterId;
@@ -271,20 +332,17 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
     return o;
   };
 
-  // Shared athletic silhouette.
-  box(.62, .28, 1.15, -.43, .12, .24, mats.shoe);
-  box(.62, .28, 1.15, .43, .12, .24, mats.shoe);
-  box(.66, .09, 1.18, -.43, .0, .24, mats.sole);
-  box(.66, .09, 1.18, .43, .0, .24, mats.sole);
-  const pelvis = capsule(.35, .62, 0, 1.05, 0, mats.dark);
-  box(1.42, .62, .82, 0, 1.38, 0, mats.black);
-  box(.46, .58, .86, -.39, 1.38, .02, mats.jersey);
-  box(.46, .58, .86, .39, 1.38, .02, mats.jersey);
-  const torso = capsule(.66, 1.05, 0, 2.55, 0, mats.jersey);
-  box(1.15, .16, .75, 0, 2.45, .56, mats.white);
-  box(1.15, .16, .75, 0, 2.45, -.56, mats.accent);
-  capsule(.2, .25, 0, 3.45, 0, mats.skin);
-
+  // Shared athlete silhouette. Exposed areas use skin materials; clothing is layered separately.
+  const bodyBuild = preferences.bodyType || 'athletic';
+  const buildScale = bodyBuild === 'slim' ? .86 : bodyBuild === 'broad' ? 1.10 : bodyBuild === 'heavy' ? 1.22 : 1;
+  const limbBuild = bodyBuild === 'slim' ? .90 : bodyBuild === 'broad' ? 1.08 : bodyBuild === 'heavy' ? 1.16 : 1;
+  box(.62 * limbBuild, .28, 1.15 * limbBuild, -.43, .12, .24, mats.shoe);
+  box(.62 * limbBuild, .28, 1.15 * limbBuild, .43, .12, .24, mats.shoe);
+  box(.66 * limbBuild, .09, 1.18 * limbBuild, -.43, .0, .24, mats.sole);
+  box(.66 * limbBuild, .09, 1.18 * limbBuild, .43, .0, .24, mats.sole);
+  const pelvis = capsule(.35 * buildScale, .62, 0, 1.05, 0, mats.dark);
+  const torso = capsule(.66 * buildScale, 1.05, 0, 2.55, 0, mats.jersey);
+  capsule(.2, .25, 0, 3.45, 0, mats.skinBody);
   const headStart = objects.length;
   buildCharacterHead(p, mats, c, { sphere, capsule, box, add });
   const headGroup = new THREE.Group();
@@ -293,13 +351,13 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
   headObjects.forEach(o => headGroup.add(o));
   p.add(headGroup);
 
-  const armL = capsule(.2, .72, -.83, 2.48, 0, mats.jersey);
-  const armR = capsule(.2, .72, .83, 2.48, 0, mats.jersey);
+  const armL = capsule(.2 * limbBuild, .72, -.83 * buildScale, 2.48, 0, mats.jersey);
+  const armR = capsule(.2 * limbBuild, .72, .83 * buildScale, 2.48, 0, mats.jersey);
   armL.rotation.z = -.12; armR.rotation.z = .12;
-  capsule(.14, .62, -.9, 1.72, 0, mats.skin);
-  capsule(.14, .62, .9, 1.72, 0, mats.skin);
-  sphere(.18, -.92, 1.35, 0, mats.skin, 14, 10);
-  sphere(.18, .92, 1.35, 0, mats.skin, 14, 10);
+  capsule(.14, .62, -.9 * buildScale, 1.72, 0, mats.skinHands);
+  capsule(.14, .62, .9 * buildScale, 1.72, 0, mats.skinHands);
+  sphere(.18 * limbBuild, -.92 * buildScale, 1.35, 0, mats.skinHands, 14, 10);
+  sphere(.18 * limbBuild, .92 * buildScale, 1.35, 0, mats.skinHands, 14, 10);
   box(.32, .13, .34, -.9, 1.62, 0, mats.white);
   box(.32, .13, .34, .9, 1.62, 0, mats.white);
   const collar = new THREE.Mesh(new THREE.TorusGeometry(.34, .065, 8, 24), mats.accent);
@@ -322,8 +380,9 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
     sphere(.14, 0, 2.86, .72, mats.accent, 12, 8);
   }
 
-  const leftLeg = capsule(.23, .72, -.4, .72, 0, mats.skin);
-  const rightLeg = capsule(.23, .72, .4, .72, 0, mats.skin);
+  const leftLeg = capsule(.23 * limbBuild, .72, -.4 * buildScale, .72, 0, mats.skinLegs);
+  const rightLeg = capsule(.23 * limbBuild, .72, .4 * buildScale, .72, 0, mats.skinLegs);
+  buildEditorClothing(p, mats, c, { box, capsule, add });
 
   buildEditorAccessories(p, headGroup, mats, c, { sphere, box, add });
   const armWidth = Number(preferences.armWidth ?? 1);
@@ -353,7 +412,15 @@ function createPlayer(scene, characterId = 'sonic', preferences = {}) {
     renderParts: objects,
     headGroup,
     editorScales: { bodyScale, heightScale, headScale },
-    baseScaleY: heightScale
+    baseScaleY: heightScale,
+    bodyType: bodyBuild,
+    hairStyle: preferences.hairStyle || 'classic',
+    clothing: preferences.clothing || 'sport',
+    skinZones: {
+      body: preferences.skinBody ?? preferences.skin ?? c.skin,
+      hands: preferences.skinHands ?? preferences.skinBody ?? preferences.skin ?? c.skin,
+      legs: preferences.skinLegs ?? preferences.skinBody ?? preferences.skin ?? c.skin
+    }
   };
   scene.add(p);
   return p;
