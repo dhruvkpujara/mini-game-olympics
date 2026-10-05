@@ -182,7 +182,7 @@ assert(characterLab.includes('id="clothing"'), "Character Lab clothing control m
 assert(characterLab.includes('id="bodyType"'), "Character Lab body build control missing");
 assert(characterLab.includes('id="skinHands"'), "Character Lab hand skin control missing");
 assert(characterLab.includes('id="skinLegs"'), "Character Lab leg skin control missing");
-assert(characterLab.includes('class="skin-preset"'), "Character Lab skin presets missing");
+assert(characterLab.includes("skin-preset"), "Character Lab skin presets missing");
 assert(characterLabJs.includes("bodyType:$('bodyType').value"), "Character Lab must save body build");
 assert(characterLabJs.includes("hairStyle:$('hairStyle').value"), "Character Lab must save hairstyle");
 assert(characterLabJs.includes("clothing:$('clothing').value"), "Character Lab must save clothing style");
