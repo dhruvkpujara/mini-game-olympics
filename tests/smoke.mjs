@@ -212,4 +212,7 @@ assert(characterLabJs.includes("location.href='index.html'"), "Tournament activa
 assert(main.includes("localStorage.getItem('mgo-tournament-character')"), "Main game must load active custom character");
 assert(main.includes("activeCharacterPrefs"), "Main game must pass custom preferences into the player");
 assert(main.includes("activeCharacterBase"), "Main game must preserve the custom base character");
+assert(main.includes("function applyTournamentCharacter"), "Main game must have a persistent custom-character sync");
+assert(main.includes("player.userData.tournamentCustom=true"), "Custom tournament athlete marker missing");
+assert(main.includes("if(customTournamentActive)applyTournamentCharacter()"), "Custom athlete must be reapplied during tournament events");
 
