@@ -187,6 +187,23 @@ function buildEditorHair(p, mats, c, helpers) {
       const q = capsule(.14, 1.05, x, 4.05, -.02, mats.hair);
       q.rotation.z = x < 0 ? .08 : -.08;
     }
+  } else if (style === 'ponytail') {
+    sphere(.79, 0, 4.47, -.02, mats.hair, 24, 16).scale.set(1, .56, 1);
+    const tail = capsule(.16, .92, 0, 3.78, -.24, mats.hair);
+    tail.rotation.z = .06;
+    sphere(.13, 0, 4.16, -.72, mats.hair, 12, 8);
+  } else if (style === 'undercut') {
+    const top = sphere(.77, 0, 4.52, -.02, mats.hair, 24, 16);
+    top.scale.set(1, .38, .92);
+    for (const x of [-.7, .7]) {
+      const side = sphere(.18, x, 4.25, 0, mats.hair, 12, 8);
+      side.scale.set(.7, .8, .8);
+    }
+  } else if (style === 'mohawk') {
+    for (let i = 0; i < 7; i++) {
+      const q = capsule(.14, .62, 0, 4.45 + i * .10, -.28 + i * .10, mats.hair);
+      q.rotation.x = -.45;
+    }
   } else {
     const cap = sphere(.76, 0, 4.49, -.02, mats.hair, 24, 16);
     cap.scale.set(1, .55, 1);
