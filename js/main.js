@@ -3,7 +3,18 @@ const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,500);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;document.querySelector('#game').appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xdff6ff,0x31533a,2.5));const sun=new THREE.DirectionalLight(0xfff2d0,3.5);sun.position.set(60,90,35);sun.castShadow=true;scene.add(sun);
 const world=createWorld(scene),race=createSkySprint(scene);
-let player=createPlayer(scene,'sonic');player.position.set(0,.1,22);
+function loadActiveTournamentCharacter(){
+  try{
+    const raw=localStorage.getItem('mgo-tournament-character');
+    if(!raw)return null;
+    const data=JSON.parse(raw);
+    if(data?.type!=='mgo-character'||!data.preferences)return null;
+    return data;
+  }catch(err){console.warn('Custom tournament character unavailable',err);return null}
+}
+const activeTournamentCharacter=loadActiveTournamentCharacter();
+const activeCharacterPrefs=activeTournamentCharacter?.preferences||{};
+let player=createPlayer(scene,'sonic',activeCharacterPrefs);player.position.set(0,.1,22);
 let selectedCharacter='sonic';
 const characterChoices=['mario','duck','bheem','raju','ninja','sonic','panda','robot'];
 function buildCharacterShowcase(){
@@ -37,7 +48,7 @@ function openCharacterSelect(){
   const panel=document.getElementById('characterSelect');if(panel)panel.style.display='none';
   const hud=document.getElementById('characterSelect3D');if(hud)hud.style.display='block';
   document.querySelector('#eventName').textContent='ATHLETE DRAFT';
-  document.querySelector('#venue').innerHTML='<b>8 ATHLETES · 8 UNIQUE CHARACTERS</b><span>Click a 3D athlete to claim the character</span>';
+  document.querySelector('#venue').innerHTML=activeTournamentCharacter?'<b>🏆 CUSTOM ATHLETE ACTIVE</b><span>'+((activeCharacterPrefs.name||'Your saved athlete').replace(/[<>]/g,''))+' will enter the tournament</span>':'<b>8 ATHLETES · 8 UNIQUE CHARACTERS</b><span>Click a 3D athlete to claim the character</span>';
 }
 function chooseCharacter3D(id){
   if(!MGO_CHARACTERS[id])return;
@@ -47,8 +58,9 @@ function chooseCharacter3D(id){
 }
 function confirmCharacter(){
   selectedCharacter=selectedShowcaseId;
+  const customActive=!!activeTournamentCharacter;
   participantCharacterIds=[selectedCharacter,...MGO_CHARACTER_IDS.filter(id=>id!==selectedCharacter).slice(0,7)];
-  player=replacePlayerCharacter(scene,player,selectedCharacter);player.position.set(0,.1,8);player.visible=true;
+  player=replacePlayerCharacter(scene,player,selectedCharacter,customActive?activeCharacterPrefs:{});player.position.set(0,.1,8);player.visible=true;
   race.rivals.forEach((r,i)=>{
     const id=participantCharacterIds[i+1];
     const next=replacePlayerCharacter(scene,r,id);next.userData.rival=true;next.userData.characterId=id;next.visible=true;race.rivals[i]=next;
@@ -56,14 +68,14 @@ function confirmCharacter(){
   if(characterShowcase){scene.remove(characterShowcase);characterShowcase=null}
   characterShowcaseItems.forEach(a=>scene.remove(a));characterShowcaseItems=[];
   const hud=document.getElementById('characterSelect3D');if(hud)hud.style.display='none';
-  document.getElementById('selectedCharacterLabel').textContent='Character: '+MGO_CHARACTERS[selectedCharacter].name;
+  document.getElementById('selectedCharacterLabel').textContent=customActive?'Character: '+(activeCharacterPrefs.name||'Custom Athlete'):'Character: '+MGO_CHARACTERS[selectedCharacter].name;
   participantCharacterIds[0]=selectedCharacter;
   villageIntroTime=7;villageIntroActive=true;
   document.querySelector('#eventName').textContent='OLYMPIC VILLAGE';
   document.querySelector('#venue').innerHTML='<b>WELCOME ATHLETES</b><span>7 seconds to explore · then SKY SPRINT</span>';
   race.rivals.forEach((r,i)=>{const a=i*Math.PI*2/7;r.visible=true;r.position.set(Math.cos(a)*8,.1,8+Math.sin(a)*7);r.rotation.y=-a+Math.PI});
   player.position.set(0,.1,8);gameState.set('VILLAGE_INTRO');
-  showToast('WELCOME TO THE ULTRA OLYMPIC VILLAGE!');
+  showToast(customActive?'CUSTOM ATHLETE ENTERING THE OLYMPICS!':'WELCOME TO THE ULTRA OLYMPIC VILLAGE!');
 }
 function shootCharacterSelect(e){
   if(gameState.state!=='CHARACTER_SELECT')return;
