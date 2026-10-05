@@ -140,7 +140,6 @@ function buildEditorAccessories(p, headGroup, mats, c, helpers) {
     badge.position.set(0,2.53,.71); p.add(badge); p.userData.jerseyNumberMesh = badge;
   }
 }
-}
 
 function buildCharacterHead(p, mats, c, helpers) {
   const { sphere, capsule, box, add } = helpers;
@@ -390,7 +389,7 @@ function replacePlayerCharacter(scene, oldPlayer, characterId = 'sonic', prefere
     next.scale.set(Number(preferences.bodyScale ?? 1), Number(preferences.heightScale ?? 1), Number(preferences.bodyScale ?? 1));
   } else next.scale.copy(scale);
   next.visible = visible;
-  next.userData = { ...next.userData, ...oldUserData, characterId, characterPreferences: { ...preferences } };
+  next.userData = { ...next.userData, ...oldUserData, characterId, characterPreferences: { ...preferences }, renderParts: next.userData.renderParts, headGroup: next.userData.headGroup, editorScales: next.userData.editorScales, baseScaleY: next.userData.baseScaleY };
   return next;
 }
 
