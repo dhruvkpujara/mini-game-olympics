@@ -14,8 +14,9 @@ function loadActiveTournamentCharacter(){
 }
 const activeTournamentCharacter=loadActiveTournamentCharacter();
 const activeCharacterPrefs=activeTournamentCharacter?.preferences||{};
-let player=createPlayer(scene,'sonic',activeCharacterPrefs);player.position.set(0,.1,22);
-let selectedCharacter='sonic';
+const activeCharacterBase=activeTournamentCharacter?.base&&MGO_CHARACTERS[activeTournamentCharacter.base]?activeTournamentCharacter.base:'sonic';
+let player=createPlayer(scene,activeCharacterBase,activeCharacterPrefs);player.position.set(0,.1,22);
+let selectedCharacter=activeCharacterBase;
 const characterChoices=['mario','duck','bheem','raju','ninja','sonic','panda','robot'];
 function buildCharacterShowcase(){
   if(characterShowcase){scene.remove(characterShowcase);characterShowcase=null}
@@ -59,6 +60,7 @@ function chooseCharacter3D(id){
 function confirmCharacter(){
   selectedCharacter=selectedShowcaseId;
   const customActive=!!activeTournamentCharacter;
+  if(customActive)selectedCharacter=activeCharacterBase;
   participantCharacterIds=[selectedCharacter,...MGO_CHARACTER_IDS.filter(id=>id!==selectedCharacter).slice(0,7)];
   player=replacePlayerCharacter(scene,player,selectedCharacter,customActive?activeCharacterPrefs:{});player.position.set(0,.1,8);player.visible=true;
   race.rivals.forEach((r,i)=>{
