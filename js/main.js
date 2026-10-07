@@ -598,6 +598,11 @@ function loop(){
         break;
     }
 
+    if(importedTournamentModel&&player){
+      importedTournamentModel.position.copy(player.position);
+      importedTournamentModel.rotation.copy(player.rotation);
+      importedTournamentModel.visible=player.visible;
+    }
     if(gameState.state==='CHARACTER_SELECT'){camera.position.lerp(new THREE.Vector3(0,8,31),.08);camera.lookAt(new THREE.Vector3(0,2.2,7));}else if(gameState.state==='GAME_BREAK'){updateCamera(camera,player,yaw,pitch);}else if(gameState.state==='HUB'&&tournament.complete){updatePodiumCamera();}else if(gameState.state==='TARGET_MAYHEM'||gameState.state==='TARGET_RESULTS')updateTargetCamera();else if(gameState.state==='PENALTY_KINGS'||gameState.state==='PENALTY_RESULTS')updatePenaltyCamera();else if(gameState.state==='SKY_SPRINT'||gameState.state==='SKY_COUNTDOWN')updateSkyCamera();else updateCamera(camera,player,yaw,pitch);
 
     if(gameState.state==='TARGET_MAYHEM'){
