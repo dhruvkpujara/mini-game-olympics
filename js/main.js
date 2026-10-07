@@ -19,6 +19,30 @@ const activeCharacterBase=activeTournamentCharacter?.base&&MGO_CHARACTERS[active
 let player=createPlayer(scene,activeCharacterBase,activeCharacterPrefs);player.position.set(0,.1,22);
 let selectedCharacter=activeCharacterBase;
 const customTournamentActive=!!activeTournamentCharacter;
+let importedTournamentModel=null;
+async function loadImportedTournamentModel(){
+  if(localStorage.getItem('mgo-tournament-model')!=='active')return;
+  try{
+    const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('mgo-character-assets',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+    const blob=await new Promise((resolve,reject)=>{const tx=db.transaction('models','readonly');const req=tx.objectStore('models').get('active');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
+    db.close(); if(!blob)return;
+    const {GLTFLoader}=await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js');
+    const url=URL.createObjectURL(blob);
+    new GLTFLoader().load(url,gltf=>{
+      importedTournamentModel=gltf.scene;
+      importedTournamentModel.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+      const box=new THREE.Box3().setFromObject(importedTournamentModel),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
+      const max=Math.max(size.x,size.y,size.z)||1;
+      importedTournamentModel.scale.setScalar(3/max);
+      importedTournamentModel.position.set(-center.x*importedTournamentModel.scale.x,-box.min.y*importedTournamentModel.scale.y, -center.z*importedTournamentModel.scale.z);
+      scene.add(importedTournamentModel);
+      if(player){player.visible=false;player.userData.importedModel=true}
+      showToast('CUSTOM 3D PLAYER LOADED');
+      URL.revokeObjectURL(url);
+    },undefined,err=>console.warn('Imported tournament model failed',err));
+  }catch(err){console.warn('Imported tournament model unavailable',err)}
+}
+
 function applyTournamentCharacter(){
   if(!customTournamentActive)return;
   player=replacePlayerCharacter(scene,player,activeCharacterBase,{...activeCharacterPrefs});
@@ -101,7 +125,7 @@ function shootCharacterSelect(e){
 }
 renderer.domElement.addEventListener('click',shootCharacterSelect);
 // Wait until all top-level state variables are initialized before building the 3D draft.
-queueMicrotask(openCharacterSelect);
+queueMicrotask(openCharacterSelect);\nloadImportedTournamentModel();
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>{keys[e.code]=false});addEventListener('blur',()=>{for(const k in keys)keys[k]=false});document.addEventListener('visibilitychange',()=>{if(document.hidden)for(const k in keys)keys[k]=false});
 let yaw=.25,pitch=.48,drag=false,lx=0,ly=0;let penaltyGoal=null,penaltyKeeper=null,penaltyKeeperT=0,penaltyBall=null,penaltyShot=null,penaltyAimPlane=null,penaltyAimMarker=null,penaltyAimZones=[];renderer.domElement.onmousedown=e=>{drag=true;lx=e.clientX;ly=e.clientY};addEventListener('mouseup',()=>drag=false);addEventListener('mousemove',e=>{if(!drag)return;yaw-=(e.clientX-lx)*.006;pitch=Math.max(.2,Math.min(1.05,pitch-(e.clientY-ly)*.004));lx=e.clientX;ly=e.clientY});
 let skyCountdown=5,returnTimer=0,resultHoldSeconds=7,elapsed=0,secondGame=false,targetTime=25,targetScore=0,targetHits=0,targetResultTimer=0,targetFlash=0,penaltyShots=0,penaltyGoals=0,penaltyTime=0,penaltyResultTimer=0,penaltyReady=false,penaltyCompleted=false,targets=[],targetMeshes=[],targetRay=new THREE.Raycaster(),mouse=new THREE.Vector2(),clock=new THREE.Clock();
