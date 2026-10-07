@@ -35,8 +35,15 @@ async function loadImportedTournamentModel(){
       const max=Math.max(size.x,size.y,size.z)||1;
       importedTournamentModel.scale.setScalar(3/max);
       importedTournamentModel.position.set(-center.x*importedTournamentModel.scale.x,-box.min.y*importedTournamentModel.scale.y, -center.z*importedTournamentModel.scale.z);
-      scene.add(importedTournamentModel);
-      if(player){player.visible=false;player.userData.importedModel=true}
+      const importedPlayer=new THREE.Group();
+      importedPlayer.name='ImportedTournamentPlayer';
+      importedPlayer.position.copy(player.position);
+      importedPlayer.rotation.copy(player.rotation);
+      importedPlayer.userData={...player.userData,importedModel:true,tournamentCustom:true};
+      importedPlayer.add(importedTournamentModel);
+      if(player.parent)player.parent.remove(player);
+      scene.add(importedPlayer);
+      player=importedPlayer;
       showToast('CUSTOM 3D PLAYER LOADED');
       URL.revokeObjectURL(url);
     },undefined,err=>console.warn('Imported tournament model failed',err));
@@ -44,6 +51,7 @@ async function loadImportedTournamentModel(){
 }
 
 function applyTournamentCharacter(){
+  if(importedTournamentModel)return;
   if(!customTournamentActive)return;
   player=replacePlayerCharacter(scene,player,activeCharacterBase,{...activeCharacterPrefs});
   player.userData.characterId=activeCharacterBase;
@@ -599,11 +607,6 @@ function loop(){
         break;
     }
 
-    if(importedTournamentModel&&player){
-      importedTournamentModel.position.copy(player.position);
-      importedTournamentModel.rotation.copy(player.rotation);
-      importedTournamentModel.visible=player.visible;
-    }
     if(gameState.state==='CHARACTER_SELECT'){camera.position.lerp(new THREE.Vector3(0,8,31),.08);camera.lookAt(new THREE.Vector3(0,2.2,7));}else if(gameState.state==='GAME_BREAK'){updateCamera(camera,player,yaw,pitch);}else if(gameState.state==='HUB'&&tournament.complete){updatePodiumCamera();}else if(gameState.state==='TARGET_MAYHEM'||gameState.state==='TARGET_RESULTS')updateTargetCamera();else if(gameState.state==='PENALTY_KINGS'||gameState.state==='PENALTY_RESULTS')updatePenaltyCamera();else if(gameState.state==='SKY_SPRINT'||gameState.state==='SKY_COUNTDOWN')updateSkyCamera();else updateCamera(camera,player,yaw,pitch);
 
     if(gameState.state==='TARGET_MAYHEM'){
