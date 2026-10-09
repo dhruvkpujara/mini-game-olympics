@@ -37,22 +37,37 @@ async function loadImportedTournamentModel(){
       const sourceBox=new THREE.Box3().setFromObject(importedTournamentModel);
       const sourceSize=sourceBox.getSize(new THREE.Vector3());
       const sourceCenter=sourceBox.getCenter(new THREE.Vector3());
-      // Normalize the actual rendered bounds, accounting for source transforms.
+      // Scale imported assets to a conservative fixed character height.
+      // GLTF bounding boxes may include extreme helper/rig nodes, so use a
+      // second hard cap and keep a small, predictable in-game stature.
+      importedTournamentModel.updateMatrixWorld(true);
+      const sourceBox=new THREE.Box3().setFromObject(importedTournamentModel);
+      const sourceSize=sourceBox.getSize(new THREE.Vector3());
+      const sourceCenter=sourceBox.getCenter(new THREE.Vector3());
       const sourceHeight=Math.max(sourceSize.y,0.001);
-      let normalizedScale=2.0/sourceHeight;
+      const targetHeight=1.0;
+      let normalizedScale=targetHeight/sourceHeight;
       importedTournamentModel.scale.setScalar(normalizedScale);
       importedTournamentModel.position.set(-sourceCenter.x*normalizedScale,-sourceBox.min.y*normalizedScale,-sourceCenter.z*normalizedScale);
       importedTournamentModel.updateMatrixWorld(true);
-      const normalizedBox=new THREE.Box3().setFromObject(importedTournamentModel);
-      const normalizedHeight=normalizedBox.getSize(new THREE.Vector3()).y;
-      if(normalizedHeight>2.15){
-        const correction=2.0/normalizedHeight;
+      let normalizedBox=new THREE.Box3().setFromObject(importedTournamentModel);
+      let normalizedHeight=normalizedBox.getSize(new THREE.Vector3()).y;
+      if(normalizedHeight>1.1){
+        const correction=targetHeight/normalizedHeight;
         importedTournamentModel.scale.multiplyScalar(correction);
         importedTournamentModel.position.multiplyScalar(correction);
         normalizedScale*=correction;
         importedTournamentModel.updateMatrixWorld(true);
+        normalizedBox=new THREE.Box3().setFromObject(importedTournamentModel);
+        normalizedHeight=normalizedBox.getSize(new THREE.Vector3()).y;
       }
-      importedTournamentModel.updateMatrixWorld(true);
+      // If the file contains an enormous rig/helper hierarchy, apply a final
+      // conservative correction based on the actual world-space bounds.
+      if(normalizedHeight>1.1){
+        importedTournamentModel.scale.multiplyScalar(1.0/normalizedHeight);
+        importedTournamentModel.position.multiplyScalar(1.0/normalizedHeight);
+        importedTournamentModel.updateMatrixWorld(true);
+      }
       const importedPlayer=new THREE.Group();
       importedPlayer.name='ImportedTournamentPlayer';
       importedPlayer.position.copy(player.position);
