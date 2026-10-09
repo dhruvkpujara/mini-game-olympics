@@ -31,15 +31,24 @@ async function loadImportedTournamentModel(){
     new GLTFLoader().load(url,gltf=>{
       importedTournamentModel=gltf.scene;
       importedTournamentModel.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
-      const box=new THREE.Box3().setFromObject(importedTournamentModel),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
-      const max=Math.max(size.x,size.y,size.z)||1;
-      importedTournamentModel.scale.setScalar(3/max);
-      importedTournamentModel.position.set(-center.x*importedTournamentModel.scale.x,-box.min.y*importedTournamentModel.scale.y, -center.z*importedTournamentModel.scale.z);
+      // Normalize by HEIGHT (not the largest dimension) so tall source assets
+      // cannot overwhelm the arena. Target a human-sized 2.35 world units.
+      importedTournamentModel.updateMatrixWorld(true);
+      const sourceBox=new THREE.Box3().setFromObject(importedTournamentModel);
+      const sourceSize=sourceBox.getSize(new THREE.Vector3());
+      const sourceCenter=sourceBox.getCenter(new THREE.Vector3());
+      const sourceHeight=Math.max(sourceSize.y,0.001);
+      const normalizedScale=2.35/sourceHeight;
+      importedTournamentModel.scale.setScalar(normalizedScale);
+      importedTournamentModel.position.set(-sourceCenter.x*normalizedScale,-sourceBox.min.y*normalizedScale,-sourceCenter.z*normalizedScale);
+      importedTournamentModel.updateMatrixWorld(true);
       const importedPlayer=new THREE.Group();
       importedPlayer.name='ImportedTournamentPlayer';
       importedPlayer.position.copy(player.position);
       importedPlayer.rotation.copy(player.rotation);
-      importedPlayer.userData={...player.userData,importedModel:true,tournamentCustom:true};
+      // Keep movement/physics state on the wrapper; do not retain references
+      // to the procedural character's detached limbs.
+      importedPlayer.userData={...player.userData,l:null,r:null,leftArm:null,rightArm:null,torso:null,pelvis:null,renderParts:[],headGroup:null,editorScales:{bodyScale:1,heightScale:1,headScale:1},baseScaleY:1,vy:0,ground:true,slide:0,importedModel:true,tournamentCustom:true};
       importedPlayer.add(importedTournamentModel);
       if(player.parent)player.parent.remove(player);
       scene.add(importedPlayer);
