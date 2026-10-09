@@ -651,13 +651,14 @@ function loop(){
     window.MGO_DEBUG.lastFrame=performance.now();
     window.MGO_DEBUG.lastError=null;
   }catch(err){
-    window.MGO_DEBUG.lastError=String(err&&err.stack||err);
+    const message=String(err&&err.stack||err);
+    if(window.MGO_DEBUG)window.MGO_DEBUG.lastError=message;
     console.error('Mini Game Olympics runtime error:',err);
-    renderer.render(scene,camera);
+    try{renderer.render(scene,camera)}catch(renderError){console.error('Render recovery failed:',renderError)}
     const e=document.querySelector('#debugError');
     if(e){
       e.style.display='block';
-      e.textContent='RUNTIME ERROR\\n'+window.MGO_DEBUG.lastError;
+      e.textContent='RUNTIME ERROR\\n'+message;
     }
   }
 }
