@@ -37,7 +37,7 @@ async function loadImportedTournamentModel(){
       const sourceSize=sourceBox.getSize(new THREE.Vector3());
       const sourceCenter=sourceBox.getCenter(new THREE.Vector3());
       const sourceHeight=Math.max(sourceSize.y,0.001);
-      const targetHeight=1.0;
+      const targetHeight=4.6;
       const normalizedScale=targetHeight/sourceHeight;
       importedTournamentModel.scale.setScalar(normalizedScale);
       importedTournamentModel.position.set(
