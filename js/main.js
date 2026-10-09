@@ -37,10 +37,21 @@ async function loadImportedTournamentModel(){
       const sourceBox=new THREE.Box3().setFromObject(importedTournamentModel);
       const sourceSize=sourceBox.getSize(new THREE.Vector3());
       const sourceCenter=sourceBox.getCenter(new THREE.Vector3());
+      // Normalize the actual rendered bounds, accounting for source transforms.
       const sourceHeight=Math.max(sourceSize.y,0.001);
-      const normalizedScale=2.35/sourceHeight;
+      let normalizedScale=2.0/sourceHeight;
       importedTournamentModel.scale.setScalar(normalizedScale);
       importedTournamentModel.position.set(-sourceCenter.x*normalizedScale,-sourceBox.min.y*normalizedScale,-sourceCenter.z*normalizedScale);
+      importedTournamentModel.updateMatrixWorld(true);
+      const normalizedBox=new THREE.Box3().setFromObject(importedTournamentModel);
+      const normalizedHeight=normalizedBox.getSize(new THREE.Vector3()).y;
+      if(normalizedHeight>2.15){
+        const correction=2.0/normalizedHeight;
+        importedTournamentModel.scale.multiplyScalar(correction);
+        importedTournamentModel.position.multiplyScalar(correction);
+        normalizedScale*=correction;
+        importedTournamentModel.updateMatrixWorld(true);
+      }
       importedTournamentModel.updateMatrixWorld(true);
       const importedPlayer=new THREE.Group();
       importedPlayer.name='ImportedTournamentPlayer';
