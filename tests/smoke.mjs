@@ -216,3 +216,7 @@ assert(main.includes("function applyTournamentCharacter"), "Main game must have 
 assert(main.includes("player.userData.tournamentCustom=true"), "Custom tournament athlete marker missing");
 assert(main.includes("if(customTournamentActive)applyTournamentCharacter()"), "Custom athlete must be reapplied during tournament events");
 
+
+assert(main.includes("const normalizedScale=2.35/sourceHeight"), "Imported player height must be normalized");
+assert(main.includes("l:null,r:null,leftArm:null,rightArm:null"), "Imported player must not retain detached procedural limb references");
+assert(main.includes("importedModel:true,tournamentCustom:true"), "Imported player must keep custom model movement state");
