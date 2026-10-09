@@ -588,7 +588,9 @@ function updatePlayer(player, keys, dt, yaw, toast) {
   const u = player.userData;
   u.cool = Math.max(0, (u.cool || 0) - dt);
   u.runTime = (u.runTime || 0) + dt;
-  const forward = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+  // Camera-relative WASD: W forward, S backward, A left, D right.
+  // With the default camera yaw, forward points into the arena (-Z).
+  const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
   const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
   const move = new THREE.Vector3();
   if (keys.KeyW) move.add(forward);
