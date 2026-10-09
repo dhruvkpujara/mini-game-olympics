@@ -220,3 +220,7 @@ assert(main.includes("if(customTournamentActive)applyTournamentCharacter()"), "C
 assert(main.includes("const normalizedScale=2.35/sourceHeight"), "Imported player height must be normalized");
 assert(main.includes("l:null,r:null,leftArm:null,rightArm:null"), "Imported player must not retain detached procedural limb references");
 assert(main.includes("importedModel:true,tournamentCustom:true"), "Imported player must keep custom model movement state");
+
+assert(player.includes("const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw))"), "WASD must use the requested forward/backward mapping");
+assert(main.includes("const normalizedScale=2.0/sourceHeight"), "Imported player height must target a human-sized scale");
+assert(main.includes("if(normalizedHeight>2.15)"), "Imported player must have a final bounding-box height guard");
