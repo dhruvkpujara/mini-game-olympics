@@ -105,7 +105,7 @@ function confirmCharacter(){
   const customActive=customTournamentActive;
   if(customActive)selectedCharacter=activeCharacterBase;
   participantCharacterIds=[selectedCharacter,...MGO_CHARACTER_IDS.filter(id=>id!==selectedCharacter).slice(0,7)];
-  player=replacePlayerCharacter(scene,player,selectedCharacter,customActive?{...activeCharacterPrefs}:{});if(customActive)applyTournamentCharacter();player.position.set(0,.1,8);player.visible=true;
+  if(!importedTournamentModel){player=replacePlayerCharacter(scene,player,selectedCharacter,customActive?{...activeCharacterPrefs}:{});if(customActive)applyTournamentCharacter()}else{player.userData.importedModel=true;player.userData.tournamentCustom=true;}player.position.set(0,.1,8);player.visible=true;
   race.rivals.forEach((r,i)=>{
     const id=participantCharacterIds[i+1];
     const next=replacePlayerCharacter(scene,r,id);next.userData.rival=true;next.userData.characterId=id;next.visible=true;race.rivals[i]=next;
